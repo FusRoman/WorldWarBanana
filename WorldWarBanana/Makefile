@@ -1,30 +1,67 @@
 .SUFFIXES:
 .SUFFIXES:      .cc .o .h
 
-FMOD		= fmod/4.3
-MFMOD		= fmod/Developer/FMOD\ Programmers\ API\ Mac/api/inc
+LIB			= lib/
+SRCDIR 		= src/
+INCLUDEDIR 	= include/
+BUILDDIR 	= .build/
+DEPENDSDIR  = .depends/
 
-O			= Labyrinthe.o Chasseur.o
+# Dossiers des fichiers à ne pas modifier
+DEF 		= $(SRCDIR)definitive/
+IDEF 		= $(INCLUDEDIR)definitive/
+BDEF 		= $(BUILDDIR)definitive/
 
-LIBS		= $(FMOD)/libfmodex64.so -lglut -lGLU -lGL jpeg/libjpeg.a -lm
-MLIBS		= -framework GLUT -framework OpenGL -framework Foundation jpeg/libmacjpeg.a \
+# Dossiers des fichiers qu'on peut modifier
+CUS 		= $(SRCDIR)custom/
+ICUS 		= $(INCLUDEDIR)custom/
+BCUS 		= $(BUILDDIR)custom/
+
+INCLUDEPATH = -I $(FMOD) -I $(INCLUDEDIR) -I $(IDEF) -I $(ICUS)
+
+SRC 		:= $(wildcard $(DEF)*.cc $(CUS)*.cc)
+INCLUDE 	:= $(wildcard $(INCLUDEDIR)*.h $(IDEF)*.h $(ICUS)*.h)
+OBJ 		:= $(SRC:$(SRCDIR)%.cc=$(BUILDDIR)%.o)
+DEPENDS 	:= $(SRC:$(SRCDIR)%.cc=$(DEPENDSDIR)%.d)
+
+FMOD		= $(LIB)/fmod/4.3
+MFMOD		= $(LIB)/fmod/Developer/FMOD\ Programmers\ API\ Mac/api/inc
+LIBS		= $(FMOD)/libfmodex64.so -lglut -lGLU -lGL $(LIB)/jpeg/libjpeg.a -lm
+MLIBS		= -framework GLUT -framework OpenGL -framework Foundation $(LIB)/jpeg/libmacjpeg.a \
 			  /Developer/FMOD\ Programmers\ API\ Mac/api/lib/libfmodex.dylib
 
 CXX			= g++
-CXXFLAGS	= -I $(FMOD) -O3 -Wall
+CXXFLAGS	= $(INCLUDEPATH) -O3 -Wall -Werror
+DEPFLAGS 	= -MT $@ -MMD -MP -MF $(DEPENDSDIR)$*.d
+MKDIR 		= mkdir -p
 
-.cc.o:
-	$(CXX) $(CXXFLAGS) -c $<
+.PHONY: list clean
 
-labh:	$(O)
-	$(CXX) -o $@ $(O) DebOpenGL.o $(LIBS)
+$(BUILDDIR)%.o: $(SRCDIR)%.cc
+$(BUILDDIR)%.o: $(SRCDIR)%.cc $(DEPENDSDIR)%.d | $(DEPENDSDIR)
+	$(MKDIR) $(@D:$(BUILDDIR)%=$(DEPENDSDIR)%)
+	$(MKDIR) $(@D)
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
 
-maclabh:	$(O)
-	$(CXX) -o $@ MacOpenGL.o $(O) $(MLIBS)
+labh:	$(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LIB)DebOpenGL.o $(LIBS)
+
+maclabh:	$(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(LIB)MacOpenGL.o $(OBJ) $(MLIBS)
 	install_name_tool -change ./libfmodex.dylib /Developer/FMOD\ Programmers\ API\ Mac/api/lib/libfmodex.dylib $@
 
-clean:
-	@rm -f labh maclabh $(O)
+$(DEPENDS):
 
-Labyrinthe.o:	Labyrinthe.h Chasseur.h Gardien.h
-Chasseur.o:		Chasseur.h
+include $(wildcard $(DEPENDS))
+
+list:
+	@echo "include path:\n$(INCLUDEPATH)\n"
+	@echo "src:\n$(SRC)\n"
+	@echo "include:\n$(INCLUDE)\n"
+	@echo "obj:\n$(OBJ)\n"
+	@echo "depends:\n$(DEPENDS)\n"
+
+clean:
+	@rm -f labh maclabh $(OBJ)
+	@rm -rf $(BUILDDIR)
+	@rm -rf $(DEPENDSDIR)

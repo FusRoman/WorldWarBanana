@@ -55,7 +55,6 @@ $(DEPENDS):
 include $(wildcard $(DEPENDS))
 
 list:
-	@echo "include path:\n$(INCLUDEPATH)\n"
 	@echo "src:\n$(SRC)\n"
 	@echo "include:\n$(INCLUDE)\n"
 	@echo "obj:\n$(OBJ)\n"

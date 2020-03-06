@@ -1,21 +1,24 @@
+#include <fstream>
+#include <string>
+
 #include "Labyrinthe.h"
 #include "Chasseur.h"
 #include "Gardien.h"
 
-Sound*	Chasseur::_hunter_fire;	// bruit de l'arme du chasseur.
-Sound*	Chasseur::_hunter_hit;	// cri du chasseur touché.
-Sound*	Chasseur::_wall_hit;	// on a tapé un mur.
+Sound *Chasseur::_hunter_fire; // bruit de l'arme du chasseur.
+Sound *Chasseur::_hunter_hit;  // cri du chasseur touchï¿½.
+Sound *Chasseur::_wall_hit;	// on a tapï¿½ un mur.
 
-Environnement* Environnement::init (char* filename)
+Environnement *Environnement::init(char *filename)
 {
-	return new Labyrinthe (filename);
+	return new Labyrinthe(filename);
 }
 
 /*
  *	EXEMPLE de labyrinthe.
  */
 
-Labyrinthe::Labyrinthe (char* filename)
+/*Labyrinthe::Labyrinthe (char* filename)
 {
 	// taille du labyrinthe.
 	lab_height = 80;
@@ -51,13 +54,13 @@ Labyrinthe::Labyrinthe (char* filename)
 	//  (attention: pour des raisons de rapport d'aspect, les affiches doivent faire 2 de long)
 	n = 0;
 	_picts = new Wall [2];
-	// la première (texture par défaut).
+	// la premiï¿½re (texture par dï¿½faut).
 	_picts [n]._ntex = 0;
 	_picts [n]._x1 = 0; _picts [n]._y1 = 4;
 	_picts [n]._x2 = 0; _picts [n]._y2 = 6;
 	++n;
 
-	// la deuxième a une texture différente.
+	// la deuxiï¿½me a une texture diffï¿½rente.
 	char	tmp [128];
 	sprintf (tmp, "%s/%s", texture_dir, "voiture.jpg");
 
@@ -71,18 +74,18 @@ Labyrinthe::Labyrinthe (char* filename)
 	_boxes = new Box [3];
 
 	n = 0;
-	// la première.
+	// la premiï¿½re.
 	_boxes [n]._x = 12; _boxes [n]._y = 70; _boxes [n]._ntex = 0;
 	++n;
 	// la deuxieme.
 	_boxes [n]._x = 5; _boxes [n]._y = 10; _boxes [n]._ntex = 0;
 	++n;
-	// la dernière.
+	// la derniï¿½re.
 	_boxes [n]._x = 22; _boxes [n]._y = 65; _boxes [n]._ntex = 0;
 	++n;
 	_nboxes = n;
 
-	// création du tableau d'occupation du sol.
+	// crï¿½ation du tableau d'occupation du sol.
 	_data = new char* [lab_width];
 	for (int i = 0; i < lab_width; ++i)
 		_data [i] = new char [lab_height];
@@ -102,7 +105,7 @@ Labyrinthe::Labyrinthe (char* filename)
 	_data [_boxes [1]._x][_boxes [1]._y] = 1;
 	_data [_boxes [2]._x][_boxes [2]._y] = 1;
 
-	// coordonnées du trésor.
+	// coordonnï¿½es du trï¿½sor.
 	_treasor._x = 10;
 	_treasor._y = 10;
 	// indiquer qu'on ne marche pas dessus.
@@ -122,4 +125,88 @@ Labyrinthe::Labyrinthe (char* filename)
 	_data [(int)(_guards [2] -> _x / scale)][(int)(_guards [2] -> _y / scale)] = 1;
 	_data [(int)(_guards [3] -> _x / scale)][(int)(_guards [3] -> _y / scale)] = 1;
 	_data [(int)(_guards [4] -> _x / scale)][(int)(_guards [4] -> _y / scale)] = 1;
+}*/
+
+bool isSpace(char c)
+{
+	switch (c)
+	{
+	case '':
+	case ' ':
+	case '\t':
+	case '\n':
+	case '\r':
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool isLowerAlpha(char c)
+{
+	return c >= 'a' && c <= 'z';
+}
+
+// Renvoie l'index du premier caractÃ¨re non blanc (ou size si aucun)
+int ignoreSpace(const string& line, int start)
+{
+	while (start < currentLine.size() && isSpace(currentLine[start]))
+	{
+		++start;
+	}
+	return start;
+}
+
+int ignoreNonSpace(const string& line, int start)
+{
+	while (start < currentLine.size() && !isSpace(currentLine[start]))
+	{
+		++start;
+	}
+	return start;
+}
+
+Labyrinthe::Labyrinthe(char *filename)
+{
+	// Chargement du fichier
+	std::ifstream file;
+	try
+	{
+		file.open(filename);
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << "Could not open file " << filename << ". Message: " << e.what() << '\n';
+		exit(1);
+	}
+
+	// PremiÃ¨re Ã©tape : commentaires et affiches
+	_picts = new Wall(26); // solution fainÃ©ante
+	string currentLine;
+	while (std::getline(file, currentLine))
+	{
+		// On ignore les espaces prÃ©liminaires
+		int i = ignoreSpace(line, 0);
+
+		// Si la ligne est vide, ou c'est un commentaire
+		if (i >= currentLine.size() || currentLine[i] == '#')
+		{
+			continue;
+		}
+
+		if (currentLine[i] == '+')
+		{
+			// On est (si le fichier est correct) sur la description du labyrinthe
+			// (lÃ  on ignorerait la premiÃ¨re ligne du laby, c pa bi1)
+			break;
+		} else if (isLowerAlpha(currentLine[i]))
+		{
+			// On est sur une ligne qui associe une lettre minuscule Ã  une affiche
+			int startPict = ignoreSpace(line, i + 1);
+			int endPict = ignoreNonSpace(line, startPict);
+			std::string picture = texture_dir + "/" + line.substr(startPict, endPict - startPict);
+			
+		}
+	}
 }

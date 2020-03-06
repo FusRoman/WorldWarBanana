@@ -18,7 +18,7 @@ Environnement *Environnement::init(char *filename)
  *	EXEMPLE de labyrinthe.
  */
 
-/*Labyrinthe::Labyrinthe (char* filename)
+Labyrinthe::Labyrinthe (char* filename)
 {
 	// taille du labyrinthe.
 	lab_height = 80;
@@ -112,22 +112,28 @@ Environnement *Environnement::init(char *filename)
 	_data [_treasor._x][_treasor._y] = 1;
 
 	// le chasseur et les 4 gardiens.
-	_nguards = 1+4;
+	_nguards = 1+10;
 	_guards = new Mover* [_nguards];
 	_guards [0] = new Chasseur (this);
 	_guards [1] = new Gardien (this, "drfreak");
 	_guards [2] = new Gardien (this, "Marvin"); _guards [2] -> _x = 90.; _guards [2] -> _y = 70.;
 	_guards [3] = new Gardien (this, "Potator"); _guards [3] -> _x = 60.; _guards [3] -> _y = 10.;
 	_guards [4] = new Gardien (this, "garde"); _guards [4] -> _x = 130.; _guards [4] -> _y = 100.;
+	_guards [5] = new Gardien (this, "Droid"); _guards [5] -> _x = 130.; _guards [5] -> _y = 70.;
+	_guards [6] = new Gardien (this, "Lezard"); _guards [6] -> _x = 160.; _guards [6] -> _y = 100.;
+	_guards [7] = new Gardien (this, "Samourai"); _guards [7] -> _x = 160.; _guards [7] -> _y = 70.;
+	_guards [8] = new Gardien (this, "Serpent"); _guards [8] -> _x = 190.; _guards [8] -> _y = 100.;
+	_guards [9] = new Gardien (this, "Squelette"); _guards [9] -> _x = 190.; _guards [9] -> _y = 70.;
+	_guards[10] = new Gardien (this, "Blade"); _guards[10] -> _x = 220.; _guards[10] -> _y = 100.;
 
 	// indiquer qu'on ne marche pas sur les gardiens.
-	_data [(int)(_guards [1] -> _x / scale)][(int)(_guards [1] -> _y / scale)] = 1;
-	_data [(int)(_guards [2] -> _x / scale)][(int)(_guards [2] -> _y / scale)] = 1;
-	_data [(int)(_guards [3] -> _x / scale)][(int)(_guards [3] -> _y / scale)] = 1;
-	_data [(int)(_guards [4] -> _x / scale)][(int)(_guards [4] -> _y / scale)] = 1;
-}*/
+	for (int i = 1; i < _nguards; ++i)
+	{
+		_data [(int)(_guards [i] -> _x / scale)][(int)(_guards [i] -> _y / scale)] = 1;
+	}
+}
 
-bool isSpace(char c)
+/*bool isSpace(char c)
 {
 	switch (c)
 	{
@@ -209,4 +215,4 @@ Labyrinthe::Labyrinthe(char *filename)
 			
 		}
 	}
-}
+}*/

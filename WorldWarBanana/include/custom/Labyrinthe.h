@@ -13,18 +13,18 @@ private:
 public:
 	Labyrinthe (char*);
 
-	int width() const override 
+	int width() override 
 	{ 
 		return lab_width;
 	}
 
-	int height() const override 
+	int height() override 
 	{ 
 		return lab_height;
 	}
 
 	// retourne l'�tat (occupation) de la case (i, j).
-	char data (int i, int j)
+	char data(int i, int j)
 	{
 		return _data[i][j];
 	}

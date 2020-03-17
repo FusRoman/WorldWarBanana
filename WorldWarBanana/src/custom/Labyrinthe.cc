@@ -1,5 +1,6 @@
 #include <fstream>
 #include <string>
+#include <iostream>
 
 #include "Labyrinthe.h"
 #include "Chasseur.h"
@@ -17,7 +18,7 @@ Environnement *Environnement::init(char *filename)
 /*
  *	EXEMPLE de labyrinthe.
  */
-
+/*
 Labyrinthe::Labyrinthe (char* filename)
 {
 	// taille du labyrinthe.
@@ -120,7 +121,7 @@ Labyrinthe::Labyrinthe (char* filename)
 	_guards [3] = new Gardien (this, "Potator"); _guards [3] -> _x = 60.; _guards [3] -> _y = 10.;
 	_guards [4] = new Gardien (this, "garde"); _guards [4] -> _x = 130.; _guards [4] -> _y = 100.;
 	_guards [5] = new Gardien (this, "Droid"); _guards [5] -> _x = 130.; _guards [5] -> _y = 70.;
-	_guards [6] = new Gardien (this, "Lezard"); _guards [6] -> _x = 160.; _guards [6] -> _y = 100.;
+	_guards [6] = new Gardien (this, "Lezard"); _guards [personnage6] -> _x = 160.; _guards [6] -> _y = 100.;
 	_guards [7] = new Gardien (this, "Samourai"); _guards [7] -> _x = 160.; _guards [7] -> _y = 70.;
 	_guards [8] = new Gardien (this, "Serpent"); _guards [8] -> _x = 190.; _guards [8] -> _y = 100.;
 	_guards [9] = new Gardien (this, "Squelette"); _guards [9] -> _x = 190.; _guards [9] -> _y = 70.;
@@ -131,13 +132,12 @@ Labyrinthe::Labyrinthe (char* filename)
 	{
 		_data [(int)(_guards [i] -> _x / scale)][(int)(_guards [i] -> _y / scale)] = 1;
 	}
-}
+}*/
 
-/*bool isSpace(char c)
+bool isSpace(char c)
 {
 	switch (c)
 	{
-	case '':
 	case ' ':
 	case '\t':
 	case '\n':
@@ -155,23 +155,62 @@ bool isLowerAlpha(char c)
 }
 
 // Renvoie l'index du premier caractère non blanc (ou size si aucun)
-int ignoreSpace(const string& line, int start)
+int ignoreSpace(const std::string &line, unsigned int start)
 {
-	while (start < currentLine.size() && isSpace(currentLine[start]))
+	while (start < line.size() && isSpace(line[start]))
 	{
 		++start;
 	}
 	return start;
 }
 
-int ignoreNonSpace(const string& line, int start)
+// Renvoie l'index du dernier caractère non blanc ( ou size si aucun)
+int ignoreNonSpace(const std::string &line, unsigned int start)
 {
-	while (start < currentLine.size() && !isSpace(currentLine[start]))
+	while (start < line.size() && !isSpace(line[start]))
 	{
 		++start;
 	}
 	return start;
 }
+
+// renvoie l'index de l'affiche correspondant au caractère passé en paramètre.
+inline int indexOfPoster(char c)
+{
+	return c - 'a';
+}
+
+/*int readingWall(const std::string &line, int startWall, Wall *wall)
+{personnage
+	while (startWall < line.size() && line[startWall] != '+')
+	{
+		if()
+	}
+}*/
+
+/*
+void makeWall(const std::string &line, Wall *wall, int nWall, int labHeigth)
+{
+	int startWall = ignoreSpace(line, 0);
+	int endWall = 0;
+	while (startWall < line.size())
+	{
+		wall[nWall]._y1 = labHeigth;
+		wall[nWall]._y2 = labHeigth;
+		wall[nWall]._x1 = startWall;
+		endWall = ignoreNonSpace(line, startWall);
+		if (endWall == line.size())
+		{
+			std::cerr << "undefined wall" << std::endl;
+		}
+		else
+		{
+			wall[nWall]._x2 = endWall;
+		}
+		nWall++;
+	}
+}personnage
+*/
 
 Labyrinthe::Labyrinthe(char *filename)
 {
@@ -188,12 +227,17 @@ Labyrinthe::Labyrinthe(char *filename)
 	}
 
 	// Première étape : commentaires et affiches
-	_picts = new Wall(26); // solution fainéante
-	string currentLine;
+
+	// ce tableau de string contient le chemin vers toutes les affiches du labyrinthe (max 26) 
+	std::string *arrayOfPathPoster = new std::string[26]; // solution fainéante
+	unsigned int n_picts = 0;
+	std::string currentLine;
+	unsigned int beginLaby = 0;
+	// On lit l'en-tête du fichier
 	while (std::getline(file, currentLine))
 	{
 		// On ignore les espaces préliminaires
-		int i = ignoreSpace(line, 0);
+		unsigned int i = ignoreSpace(currentLine, 0);
 
 		// Si la ligne est vide, ou c'est un commentaire
 		if (i >= currentLine.size() || currentLine[i] == '#')
@@ -206,13 +250,50 @@ Labyrinthe::Labyrinthe(char *filename)
 			// On est (si le fichier est correct) sur la description du labyrinthe
 			// (là on ignorerait la première ligne du laby, c pa bi1)
 			break;
-		} else if (isLowerAlpha(currentLine[i]))
+		}
+		else if (isLowerAlpha(currentLine[i]))
 		{
 			// On est sur une ligne qui associe une lettre minuscule à une affiche
-			int startPict = ignoreSpace(line, i + 1);
-			int endPict = ignoreNonSpace(line, startPict);
-			std::string picture = texture_dir + "/" + line.substr(startPict, endPict - startPict);
-			
+			int startPict = ignoreSpace(currentLine, i + 1);
+			int endPict = ignoreNonSpace(currentLine, startPict);
+			std::string picture("");
+			picture.append(texture_dir);
+			picture.append("/" + currentLine.substr(startPict, endPict - startPict));
+			arrayOfPathPoster[n_picts] = picture;
+			n_picts++;
 		}
+		//récupére la position du curseur de lecture du fichier
+		beginLaby = file.tellg();
 	}
-}*/
+
+	/*1er passe : récupération des informations du labyrinthe
+		- nombre de mur
+		- nombre de garde
+		- nombre d'affiche
+		- nombre de boite
+		- taille du rectangle englobant le labyrinthe
+	*/
+	while (std::getline(file, currentLine))
+	{
+
+	}
+
+	//retour au debut du labyrinthe
+	file.seekg(beginLaby);
+
+	/*2er passe : construction des objets du labyrinthe
+		- pour la constructions des murs, les coordonnées x1 et y1 corresponde au
+			coordonnée de début du mur et x2, y2 les coordonnée de fin. De plus, _n_tex est
+			un identifiant pour la texture du mur ( par defaut, c'est 0)
+		- les affiches sont juste des murs qui font 2 de longueur, il diffère des autres
+			mur par leurs identifiant d'affiche _n_tex qu'il faut set avec la focntion
+			wall_texture qui prend en paramètre le chemin vers l'image de l'affiche d'ou
+			l'utilité du tableau arrayOfPathPoster. La bonne affiche en fonction
+			du caractère dans le fichier est récupérable par la fontion
+			indexOfPoster(char c).
+	*/	
+	while (std::getline(file, currentLine))
+	{
+
+	}
+}

@@ -266,6 +266,7 @@ Labyrinthe::Labyrinthe(char *filename)
 		beginLaby = file.tellg();
 	}
 
+
 	/*1er passe : récupération des informations du labyrinthe
 		- nombre de mur
 		- nombre de garde
@@ -292,6 +293,8 @@ Labyrinthe::Labyrinthe(char *filename)
 			du caractère dans le fichier est récupérable par la fontion
 			indexOfPoster(char c).
 	*/	
+
+
 	while (std::getline(file, currentLine))
 	{
 

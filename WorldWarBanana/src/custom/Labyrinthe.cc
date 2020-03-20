@@ -1,6 +1,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include "Labyrinthe.h"
 #include "Chasseur.h"
@@ -228,11 +229,11 @@ Labyrinthe::Labyrinthe(char *filename)
 
 	// Première étape : commentaires et affiches
 
-	// ce tableau de string contient le chemin vers toutes les affiches du labyrinthe (max 26) 
+	// ce tableau de string contient le chemin vers toutes les affiches du labyrinthe (max 26)
 	std::string *arrayOfPathPoster = new std::string[26]; // solution fainéante
 	unsigned int n_picts = 0;
 	std::string currentLine;
-	unsigned int beginLaby = 0;
+	unsigned int beginLab = 0;
 	// On lit l'en-tête du fichier
 	while (std::getline(file, currentLine))
 	{
@@ -262,10 +263,8 @@ Labyrinthe::Labyrinthe(char *filename)
 			arrayOfPathPoster[n_picts] = picture;
 			n_picts++;
 		}
-		//récupére la position du curseur de lecture du fichier
-		beginLaby = file.tellg();
+		beginLab = file.tellg();
 	}
-
 
 	/*1er passe : récupération des informations du labyrinthe
 		- nombre de mur
@@ -274,29 +273,101 @@ Labyrinthe::Labyrinthe(char *filename)
 		- nombre de boite
 		- taille du rectangle englobant le labyrinthe
 	*/
+	std::vector<std::string> allLine;
+	allLine.push_back(currentLine);
 	while (std::getline(file, currentLine))
 	{
-
+		allLine.push_back(currentLine);
 	}
 
-	//retour au debut du labyrinthe
-	file.seekg(beginLaby);
+	std::vector<Wall> tmp_wall;
+	std::vector<Gardien> tmp_guard;
+	std::vector<Wall> tmp_affiche;
+	std::vector<Box> tmp_box;
+
+	int nbMur = 0;
+	int nbGarde = 0;
+	int nbAffiche = 0;
+	int nbBoite = 0;
+	int width, height = 0;
+	int maxSizeLine = 0;
+
+	/*
+		1er passe : horizontale
+	*/
+
+	for (int i = 0; i < allLine.size(); ++i)
+	{
+		currentLine = allLine[i];
+		height = (currentLine.size() > height) ? currentLine.size() : height;
+		bool debutMur = false;
+		for (int j = 0; j < currentLine.size(); ++j)
+		{
+			if (isLowerAlpha(currentLine[j]))
+			{
+				++nbAffiche;
+			}
+			else
+			{
+				switch (currentLine[j])
+				{
+				case '-':
+				case '|':
+					break;
+				case 'G':
+					++nbGarde;
+					break;
+				case 'X':
+					++nbAffiche;
+					break;
+				case '+':
+					if (debutMur)
+					{
+						if (j < currentLine.size() - 1)
+						{
+							switch (currentLine[j + 1])
+							{
+							case '-':
+								++nbMur;
+								break;
+							default:
+								++nbMur;
+								debutMur = false;
+								break;
+							}
+						}
+						else
+						{
+							++nbMur;
+							debutMur = false;
+						}
+						break;
+					}
+					else
+					{
+						debutMur = true;
+						break;
+					}
+				}
+			}
+		}
+	}
 
 	/*2er passe : construction des objets du labyrinthe
 		- pour la constructions des murs, les coordonnées x1 et y1 corresponde au
 			coordonnée de début du mur et x2, y2 les coordonnée de fin. De plus, _n_tex est
 			un identifiant pour la texture du mur ( par defaut, c'est 0)
 		- les affiches sont juste des murs qui font 2 de longueur, il diffère des autres
-			mur par leurs identifiant d'affiche _n_tex qu'il faut set avec la focntion
+			mur par leurs identifiant d'affiche _n_tex qu'il faut set avec la fonction
 			wall_texture qui prend en paramètre le chemin vers l'image de l'affiche d'ou
 			l'utilité du tableau arrayOfPathPoster. La bonne affiche en fonction
 			du caractère dans le fichier est récupérable par la fontion
 			indexOfPoster(char c).
-	*/	
-
+	*/
 
 	while (std::getline(file, currentLine))
 	{
-
 	}
+
+	file.close();
 }

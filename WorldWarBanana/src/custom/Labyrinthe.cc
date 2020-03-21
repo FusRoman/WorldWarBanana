@@ -452,18 +452,30 @@ namespace Labyrinthe_private
 
     // On a lu un nombre impair de caractères pour le mur actuel
     // => Le mur peut éventuellement se terminer au caractère suivant
-    void wallOdd(Labyrinthe*, ParserState&, char);
+    //void wallOdd(Labyrinthe*, ParserState&, char);
 
     // On a lu un nombre pair de caractères pour le mur actuel et il n'est pas sur le point d'être fini
     // => on doit avoir au moins un autre caractère pour ce mur
-    void wallEven(Labyrinthe*, ParserState&, char);
+    //void wallEven(Labyrinthe*, ParserState&, char);
 
     // Le mur actuel s'est peut-être fini en lisant le dernier caractère
     // Mais il peut quand même continuer après
     // Cet état peut être vu comme un sous-cas de wallEven
+    //void endOfWall(Labyrinthe*, ParserState&, char);
+
+    // Etat où on est en train de lire un mur dont il nous manque au moins encore un caractère
+    void wall(Labyrinthe*, ParserState&, char);
+
+    // Etat où on a précédemment lu un poster
+    // Devant, il ne peut y avoir qu'un mur (sans poster)
+    void poster(Labyrinthe*, ParserState&, char);
+
+    // Etat où le mur qu'on lit est potentiellement fini
+    // Si on trouve encore un mur, on considère que c'est le même
+    // Mais si on ne trouve pas de mur, il n'y a pas non plus d'erreur
     void endOfWall(Labyrinthe*, ParserState&, char);
 
-    void initial(Labyrinthe* laby, ParserState& state, char c)
+    /*void initial(Labyrinthe* laby, ParserState& state, char c)
     {
         DEBUG("state: initial");
         switch (_type(c, state))
@@ -497,9 +509,116 @@ namespace Labyrinthe_private
             placeObject(laby, state, c);
             break;
         }
+    }*/
+
+    void initial(Labyrinthe* laby, ParserState& state, char c)
+    {
+        DEBUG("state: initial");
+        switch (_type(c, state))
+        {
+        case ALIGNED_WALL:
+        case POSTER:
+            if (state.horizontal)
+            {
+                error("Horizontal wall without left end");
+            }
+            else
+            {
+                error("Vertical wall without top end");
+            }
+
+        case CROSS:
+            // On positionne le début du mur
+            state.currentWall._x1 = state.x;
+            state.currentWall._y1 = state.y;
+            state.transition = wall;
+            break;
+
+        case PERPENDICULAR_WALL:
+        case NOTHING:
+        case END:
+            // Rien à faire
+            break;
+
+        default:
+            placeObject(laby, state, c);
+            break;
+        }
     }
 
-    void wallOdd(Labyrinthe* laby, ParserState& state, char c)
+    void wall(Labyrinthe* laby, ParserState& state, char c)
+    {
+        DEBUG("state: wall");
+        switch (_type(c, state))
+        {
+        case CROSS:
+            // Le mur pourrait être fini maintenant
+            // Mais pas forcément, on met donc le parser dans un état adapté
+            state.transition = endOfWall;
+            break;
+
+        case PERPENDICULAR_WALL:
+            errorOnPerpendicularWall(state);
+
+        case POSTER: {
+            Wall* pict = laby->_picts + state.indexPosters;
+            //pict->_ntex = laby->wall_texture(...);
+            pict->_ntex = 0;
+            pict->_x1 = state.x; 
+            pict->_y1 = state.y;
+            if (state.horizontal)
+            {
+                pict->_x2 = state.x + 2;
+                pict->_y2 = state.y;
+            }
+            else
+            {
+                pict->_x2 = state.x;
+                pict->_y2 = state.y + 2;
+            }
+            ++state.indexPosters;
+            state.transition = poster;
+            break;
+        }
+
+        case ALIGNED_WALL:
+            // Rien à faire ici
+            break;
+
+        default:
+            errorOnEnd(state);
+        }
+    }
+
+    void poster(Labyrinthe* laby, ParserState& state, char c)
+    {
+        DEBUG("state: poster");
+        switch (_type(c, state))
+        {
+        case CROSS:
+            state.transition = endOfWall;
+            break;
+
+        case ALIGNED_WALL:
+            state.transition = wall;
+            break;
+
+        case POSTER:
+            if (state.horizontal)
+            {
+                error("Found two horizontally consecutive posters.");
+            }
+            else
+            {
+                error("Found two vertically consecutive posters.");
+            }
+
+        default:
+            errorOnEnd(state);
+        }
+    }
+
+    /*void wallOdd(Labyrinthe* laby, ParserState& state, char c)
     {
         DEBUG("state: wallOdd");
         switch (_type(c, state))
@@ -587,6 +706,33 @@ namespace Labyrinthe_private
             case ALIGNED_WALL:
                 state.transition = wallOdd;
                 wallOdd(laby, state, c);
+                break;
+
+            // Pour les autres cas, le mur ne continue pas
+            // On l'ajoute, puis on revient sur le cas initial
+            default:
+                state.currentWall._x2 = state.x;
+                state.currentWall._y2 = state.y;
+                state.currentWall._ntex = 0;
+                state.walls.push_back(state.currentWall);
+
+                state.transition = initial;
+                initial(laby, state, c);
+        }
+    }*/
+
+    void endOfWall(Labyrinthe* laby, ParserState& state, char c)
+    {
+        DEBUG("state: endOfWall");
+        switch(_type(c, state))
+        {
+            // 3 case suivants : le mur ne s'est pas terminé finalement
+            // Pareil que pour wallEven
+            case POSTER:
+            case CROSS:
+            case ALIGNED_WALL:
+                state.transition = wall;
+                wall(laby, state, c);
                 break;
 
             // Pour les autres cas, le mur ne continue pas

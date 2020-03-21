@@ -18,17 +18,19 @@ private:
 
 	void parseMaze(std::ifstream& file);
     
+    void fillData();
     void flood();
 
 public:
     Labyrinthe(char*);
+    virtual ~Labyrinthe();
 
     int width() override { return m_width; }
 
     int height() override { return m_height; }
 
-    // retourne l'�tat (occupation) de la case (i, j).
-    char data(int i, int j) override { return m_data[i][j]; }
+    // retourne l'état (occupation) de la case (x, y).
+    char data(int x, int y) override;
 };
 
 #endif

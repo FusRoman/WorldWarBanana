@@ -33,9 +33,11 @@ MLIBS		= -framework GLUT -framework OpenGL -framework Foundation $(LIB)/jpeg/lib
 CXX			= g++
 CXXFLAGS	= $(INCLUDEPATH) -O3 -Wall -Werror
 DEPFLAGS 	= -MT $@ -MMD -MP -MF $(DEPENDSDIR)$*.d
-MKDIR 		= mkdir -p
 
-.PHONY: list clean
+MKDIR 		= mkdir -p
+FORMAT 			= clang-format-9 -i --verbose -style=file
+
+.PHONY: list format clean
 
 $(BUILDDIR)%.o: $(SRCDIR)%.cc
 $(BUILDDIR)%.o: $(SRCDIR)%.cc $(DEPENDSDIR)%.d | $(DEPENDSDIR)
@@ -59,6 +61,10 @@ list:
 	@echo "include:\n$(INCLUDE)\n"
 	@echo "obj:\n$(OBJ)\n"
 	@echo "depends:\n$(DEPENDS)\n"
+
+format:
+	$(FORMAT) $(SRC)
+	$(FORMAT) $(INCLUDE)
 
 clean:
 	@rm -f labh maclabh $(OBJ)

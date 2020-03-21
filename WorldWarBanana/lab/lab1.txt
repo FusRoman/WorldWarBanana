@@ -1,8 +1,8 @@
 # un commentaire commence par #
 
-a	affiche.jpg	# texture de l'affiche 1
-b	feu_old.jpg	# texture de l'affiche 2
-
+a affiche.jpg # Texture de l'affiche 1
+b feu_old.jpg 
+y caisse.jpg # Texture de l'affiche 25
 
 +-----------b------------------------------------------------------------+
 |  X                                                                  G  +-----------------+

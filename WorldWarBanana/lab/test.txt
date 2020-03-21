@@ -1,9 +1,9 @@
 # Carré de 8 cases de côté
 +------+
-|   C  |
+|     C|
+|  XX  |
 |      |
 |      |
 |      |
-|      |
-| GTG  |
+|GTG   |
 +------+

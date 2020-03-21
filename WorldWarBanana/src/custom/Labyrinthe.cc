@@ -773,7 +773,9 @@ void Labyrinthe::parseMaze(std::ifstream& file)
     for (uint y = 0; y < buffer.size(); ++y)
     {
         cursor.line = saved.line + y;
-        state.y = y;
+        // On considère que (0, 0) est le point le plus en bas à gauche
+        // On inverse donc sur l'axe y
+        state.y = m_height - y - 1;
         uint end = min<uint>(xmax + 1, buffer[y].size());
         for (uint x = xmin; x < end; ++x)
         {
@@ -799,7 +801,7 @@ void Labyrinthe::parseMaze(std::ifstream& file)
         for (uint y = 0; y < m_height; ++y)
         {
             cursor.line = saved.line + y;
-            state.y = y;
+            state.y = m_height - y - 1;
             char c = (x < buffer[y].size())? buffer[y][x] : ' ';
             DEBUG("[V] Read '" << c << "'");
             state.transition(this, state, c);

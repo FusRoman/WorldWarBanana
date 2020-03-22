@@ -1,5 +1,7 @@
 #include "Labyrinthe.h"
 
+#include <string.h>
+
 #include <string>
 #include <vector>
 #include <list>
@@ -137,6 +139,9 @@ _guards[10] -> _y = 100.;
         }
 }*/
 
+// On utilise ce namespace pour ne pas que ces fonctions qu'on désire n'utiliser que dans ce fichier
+// ne rentrent pas en conflit avec d'autres fonctions locales à un fichier
+// (on pourrait aussi utiliser static il me semble)
 namespace Labyrinthe_private {
 
     typedef struct {
@@ -188,9 +193,6 @@ namespace Labyrinthe_private {
         }
         return start;
     }
-
-    // Renvoie l'index de l'affiche correspondant au caractère passé en paramètre.
-    inline int indexOfPoster(char c) { return c - 'a'; }
 }
 using namespace Labyrinthe_private;
 
@@ -201,22 +203,28 @@ using namespace Labyrinthe_private;
  *
  *************************************************************************************************/
 
-#define NB_POSTERS 26
-
-std::string* Labyrinthe::parsePosters(std::ifstream& file) 
+void Labyrinthe::storePoster(int index, const char* path)
 {
-	// Dossier contenant les images des posters
-	std::string root(texture_dir);
-	root.append("/");
+    if (m_posters[index])
+    {
+        delete[] m_posters[index];
+    }
 
-	// Array contenant les chemins vers les affiches
-	// (maximum puisque les posters sont identifiés par une lettre minuscule)
-    std::string* postersPath = new std::string[NB_POSTERS]; // solution fainéante
+    size_t dirlen = strlen(texture_dir);
+    size_t pathlen = strlen(path);
+    m_posters[index] = new char[dirlen + pathlen + 1];
+    strcpy(m_posters[index], texture_dir);
+    m_posters[index][dirlen] = '/';
+    strcpy(m_posters[index] + dirlen + 1, path);
+    DEBUG(m_posters[index]);
+}
 
+void Labyrinthe::parsePosters(std::ifstream& file) 
+{
 	// On initialise tous les posters avec une image par défaut
-	std::string _default(root + "default_poster.jpg");
 	for (int i = 0; i < NB_POSTERS; ++i) {
-		postersPath[i] = _default;
+        m_posters[i] = nullptr;
+        storePoster(i, "default_poster.jpg");
 	}
 
 	std::string currentLine;
@@ -238,16 +246,17 @@ std::string* Labyrinthe::parsePosters(std::ifstream& file)
                 // On repositionne le curseur pour que la suite se passe bien avant de retourner
                 file.seekg(currentPos);
                 cursor = saved;
-                return postersPath;
+                return;
             }
             else if (isLowerAlpha(currentLine[i]))
             {
                 // On est sur une ligne qui associe une lettre minuscule à une affiche
                 int startPict = ignoreSpace(currentLine, i + 1);
                 int endPict   = ignoreNonSpace(currentLine, startPict);
-                int index = currentLine[i] - 'a';
-                postersPath[index] = root;
-                postersPath[index].append(currentLine.substr(startPict, endPict - startPict));
+                const char* path = currentLine.substr(startPict, endPict - startPict).c_str();
+                storePoster(currentLine[i] - 'a', path);
+                //postersPath[index] = root;
+                //postersPath[index].append(currentLine.substr(startPict, endPict - startPict));
 
                 // On vérifie qu'il n'y a rien d'autre sur la ligne
                 int next = ignoreSpace(currentLine, endPict);
@@ -277,10 +286,7 @@ std::string* Labyrinthe::parsePosters(std::ifstream& file)
     }
 
 	error("No maze provided");
-    return nullptr; // Juste pour le compilateur
 }
-
-void Labyrinthe::loadPosters(std::string* paths) {}
 
 
 /**************************************************************************************************
@@ -550,8 +556,8 @@ namespace Labyrinthe_private
 
         case ALIGNED_POSTER: {
             Wall* pict = laby->_picts + state.indexPosters;
-            //pict->_ntex = laby->wall_texture(...);
-            pict->_ntex = 0;
+            pict->_ntex = laby->wall_texture(laby->getPosterPath(c - 'a'));
+            //pict->_ntex = 0;
             pict->_x1 = state.x; 
             pict->_y1 = state.y;
             if (state.horizontal)
@@ -674,8 +680,8 @@ void Labyrinthe::parseMaze(std::ifstream& file)
     Cursor saved = cursor;
     bool treasureSet = false,
          hunterSet   = false;
-    uint xmin   = std::numeric_limits<uint>::max(),
-         xmax   = std::numeric_limits<uint>::min();
+    uint xmin = std::numeric_limits<uint>::max(),
+         xmax = std::numeric_limits<uint>::min();
     uint i = 0; // Index de la ligne (la première ligne n'est jamais vide grâce à l'implémentation de parsePosters)
     std::vector<std::string> maze;
     std::string line;
@@ -952,10 +958,7 @@ Labyrinthe::Labyrinthe(char* filename)
     DEBUG(1);
 
     // Gestion des affiches
-    auto posters = parsePosters(file);
-    loadPosters(posters);
-    delete[] posters;
-
+    parsePosters(file);
     DEBUG(2);
 
     // Chargement du niveau
@@ -976,6 +979,21 @@ Labyrinthe::~Labyrinthe()
         delete[] m_data[y];
     }
     delete[] m_data;
+
+    for (int i = 0; i < NB_POSTERS; ++i)
+    {
+        delete[] m_posters[i];
+    }
+}
+
+char* Labyrinthe::getPosterPath(uint index) const
+{
+    if (index < NB_POSTERS)
+    {
+        return m_posters[index];
+    }
+    std::cerr << "Labyrinthe::getPosterPath: invalid index " << index << "." << std::endl;
+    exit(1);
 }
 
 char Labyrinthe::data(int x, int y)

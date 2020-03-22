@@ -89,6 +89,11 @@ private:
      */
     void flood();
 
+    /**
+     * @brief Modifie m_data de façon à rendre les gardiens bloquants.
+     */
+    void fillDataMovers();
+
 public:
     Labyrinthe(char*);
     virtual ~Labyrinthe();

@@ -987,6 +987,15 @@ void Labyrinthe::flood()
     // Mettre la case du trésor à umax ?
 }
 
+void Labyrinthe::fillDataMovers()
+{
+    for (int i = 0; i < _nguards; ++i)
+    {
+        Mover* guard = _guards[i];
+        m_data[(int) guard->_y / scale][(int) guard->_x / scale] = 1;
+    }
+}
+
 
 /**************************************************************************************************
  *
@@ -1020,6 +1029,7 @@ Labyrinthe::Labyrinthe(char* filename)
 
     fillData();
     flood();
+    fillDataMovers();
     DEBUG(4);
 
     file.close();

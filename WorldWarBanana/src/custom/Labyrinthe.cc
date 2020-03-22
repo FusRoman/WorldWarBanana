@@ -216,7 +216,6 @@ void Labyrinthe::storePoster(int index, const char* path)
     strcpy(m_posters[index], texture_dir);
     m_posters[index][dirlen] = '/';
     strcpy(m_posters[index] + dirlen + 1, path);
-    DEBUG(m_posters[index]);
 }
 
 void Labyrinthe::parsePosters(std::ifstream& file) 
@@ -308,8 +307,7 @@ namespace Labyrinthe_private
         HUNTER,
         BOX,
         TREASURE,
-        NOTHING,
-        END
+        NOTHING
     };
 
     // Structure de données pour le parser
@@ -378,7 +376,6 @@ namespace Labyrinthe_private
         return state.horizontal? h : v;
     }
 
-    #define END_CHAR '$'
     Type _type(char c, const ParserState& state)
     {
         if (isLowerAlpha(c))
@@ -411,9 +408,6 @@ namespace Labyrinthe_private
 
         case '|':
             return state.horizontal? PERPENDICULAR_WALL : ALIGNED_WALL;
-
-        case END_CHAR:
-            return END;
 
         default:
             stray(c);
@@ -530,7 +524,6 @@ namespace Labyrinthe_private
         case PERPENDICULAR_WALL:
         case PERPENDICULAR_POSTER:
         case NOTHING:
-        case END:
             // Rien à faire
             break;
 
@@ -556,7 +549,7 @@ namespace Labyrinthe_private
 
         case ALIGNED_POSTER: {
             Wall* pict = laby->_picts + state.indexPosters;
-            pict->_ntex = laby->wall_texture(laby->getPosterPath(c - 'a'));
+            pict->_ntex = laby->wall_texture(c - 'a');
             //pict->_ntex = 0;
             pict->_x1 = state.x; 
             pict->_y1 = state.y;
@@ -698,16 +691,6 @@ void Labyrinthe::parseMaze(std::ifstream& file)
                 error("Tabulations are not allowed in the description of the maze for readability purpose.");
             }
 
-            if (line[x] == END_CHAR)
-            {
-                // END_CHAR a un statut particulier puisque le signe est utilisé pour signaler aux états
-                // que la ligne / colonne est finie
-                // Mais END_CHAR ne doit pas apparaître dans le fichier
-                // Si on donne END_CHAR à _type, il renverra END et le problème ne sera pas perçu,
-                // donc on teste ici
-                stray(END_CHAR);
-            }
-
             if (line[x] == ' ')
             {
                 // Absolument rien à faire ici
@@ -836,12 +819,12 @@ void Labyrinthe::parseMaze(std::ifstream& file)
         // Pour vérifier que le mur s'est bien fini
         ++state.mazeX;
         ++state.x;
-        state.transition(this, state, END_CHAR);
+        state.transition(this, state, ' ');
 
         state.transition = initial;
     }
 
-    // Deuxième passe : lecture verticale
+    // Troisième passe : lecture verticale
     state.horizontal = false;
     for (uint x = xmin; x <= xmax; ++x)
     {
@@ -859,7 +842,7 @@ void Labyrinthe::parseMaze(std::ifstream& file)
 
         ++state.mazeY;
         --state.y;
-        state.transition(this, state, END_CHAR);
+        state.transition(this, state, ' ');
 
         state.transition = initial;
     }
@@ -874,6 +857,29 @@ void Labyrinthe::parseMaze(std::ifstream& file)
  * Algorithme d'inondation
  *
  *************************************************************************************************/
+
+namespace Labyrinthe_private
+{
+    typedef struct
+    {
+        int x;
+        int y;
+        uint d;
+    } BFSData;
+
+    void floodNeighbour(Labyrinthe* laby, int x, int y, uint d, std::list<BFSData>& stack)
+    {
+        if (x < 0 || x >= laby->width() || y < 0 || y >= laby->height())
+        {
+            std::cerr << "The maze is not closed. Check its borders." << std::endl;
+            exit(1);
+        }
+        if (laby->data(x, y) == EMPTY && laby->distanceFromTreasure(x, y) > d + 1)
+        {
+            stack.push_back({x, y, d + 1});
+        }
+    }
+}
 
 // Remplit m_data sans considérer les Mover (pour l'algorithme de flood après)
 void Labyrinthe::fillData()
@@ -931,13 +937,60 @@ void Labyrinthe::fillData()
 
 void Labyrinthe::flood()
 {
+    // Allocation de m_distances et remplissage avec le plus grand entier possible
+    uint umax = std::numeric_limits<uint>::max();
+    m_distances = new uint*[m_height];
+    for (uint y = 0; y < m_height; ++y)
+    {
+        uint* row = new uint[m_width];
+        for (uint x = 0; x < m_width; ++x)
+        {
+            row[x] = umax;
+        }
+        m_distances[y] = row;
+    }
 
+    // BFS en partant du trésor
+    std::list<BFSData> stack;
+    stack.push_back({_treasor._x, _treasor._y, 0});
+    
+    while (!stack.empty())
+    {
+        BFSData data = stack.front();
+        stack.pop_front();
+        if (data.d >= m_distances[data.y][data.x])
+        {
+            continue;
+        }
+        m_distances[data.y][data.x] = data.d;
+
+        floodNeighbour(this, data.x, data.y - 1, data.d, stack);
+        floodNeighbour(this, data.x, data.y + 1, data.d, stack);
+        floodNeighbour(this, data.x - 1, data.y, data.d, stack);
+        floodNeighbour(this, data.x - 1, data.y - 1, data.d, stack);
+        floodNeighbour(this, data.x - 1, data.y + 1, data.d, stack);
+        floodNeighbour(this, data.x + 1, data.y, data.d, stack);
+        floodNeighbour(this, data.x + 1, data.y - 1, data.d, stack);
+        floodNeighbour(this, data.x + 1, data.y + 1, data.d, stack);
+    }
+
+    // Le joueur peut-il accéder au trésor ?
+    Mover* hunter = _guards[0];
+    int x = hunter->_x / scale;
+    int y = hunter->_y / scale;
+    if (m_distances[y][x] == umax)
+    {
+        std::cerr << "The player has no way to get to the treasure." << std::endl;
+        exit(1);
+    }
+
+    // Mettre la case du trésor à umax ?
 }
 
 
 /**************************************************************************************************
  *
- * Constructeur et destructeur
+ * Membres publics
  *
  *************************************************************************************************/
 
@@ -966,9 +1019,11 @@ Labyrinthe::Labyrinthe(char* filename)
     DEBUG(3);
 
     fillData();
+    flood();
+    DEBUG(4);
 
     file.close();
-    DEBUG(4);
+    DEBUG(5);
 }
 
 Labyrinthe::~Labyrinthe()
@@ -977,8 +1032,10 @@ Labyrinthe::~Labyrinthe()
     for (uint y = 0; y < m_height; ++y)
     {
         delete[] m_data[y];
+        delete[] m_distances[y];
     }
     delete[] m_data;
+    delete[] m_distances;
 
     for (int i = 0; i < NB_POSTERS; ++i)
     {
@@ -986,13 +1043,13 @@ Labyrinthe::~Labyrinthe()
     }
 }
 
-char* Labyrinthe::getPosterPath(uint index) const
+int Labyrinthe::wall_texture(uint index)
 {
     if (index < NB_POSTERS)
     {
-        return m_posters[index];
+        return Environnement::wall_texture(m_posters[index]);
     }
-    std::cerr << "Labyrinthe::getPosterPath: invalid index " << index << "." << std::endl;
+    std::cerr << "Labyrinthe::wall_texture(uint): invalid index " << index << "." << std::endl;
     exit(1);
 }
 
@@ -1005,5 +1062,18 @@ char Labyrinthe::data(int x, int y)
     else
     {
         return 1;
+    }
+}
+
+uint Labyrinthe::distanceFromTreasure(int x, int y) const
+{
+    if (x >= 0 && x < (int) m_width && y >= 0 && y < (int) m_height)
+    {
+        return m_distances[y][x];
+    }
+    else
+    {
+        DEBUG("Warning! Labyrinthe::distanceFromTreasure: out-of-bounds access");
+        return std::numeric_limits<uint>::max();
     }
 }

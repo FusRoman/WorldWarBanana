@@ -17,6 +17,11 @@ private:
     char** m_data;
 
     /**
+     * @brief Contient la distance de chaque case au trésor.
+     */
+    uint** m_distances;
+
+    /**
      * @brief Largeur du labyrinthe.
      */
     uint   m_width;
@@ -68,7 +73,7 @@ private:
     void fillData();
 
     /**
-     * @brief Initialise les données internes pour le path finding des guardiens.
+     * @brief Initialise m_distances pour le path finding des guardiens.
      * Concrètement, chaque case praticable sera associée à sa distance au trésor
      * en nombre minimal de déplacements case par case, via un algorithme de flooding
      * (d'où le nom, fort astucieux si vous me demandez mon avis).
@@ -80,15 +85,7 @@ private:
      *      Si on atteint jamais la position du joueur lors de l'algorithme, 
      *      alors le trésor est complètement inacessible au joueur et le labyrinthe n'est pas valide. 
      * Peu importe si d'autres objets sont hors de portée du joueur, 
-     * puisqu'ils ne sont pas essentiels pour gagner .
-     *
-     * @todo On utile m_data ou un autre array avec exactement les mêmes dimensions ?
-     * Si on prend la première solution, il faut changer le type de m_data (on met plutôt uint).
-     * La valeur std::numeric_limits<uint>::max() représente alors une case occupée.
-     * Toute autre valeur est considérée comme praticable, et représente la distance au trésor
-     * en nombre de déplacements case par case minimum.
-     * Inconvénient : on ne peut pas modifier m_data quand on fait bouger les Mover au risque
-     * de perdre des données, donc on va devoir itérer sur les Mover dans data().
+     * puisqu'ils ne sont pas essentiels pour gagner.
      */
     void flood();
 
@@ -101,11 +98,9 @@ public:
     int height() override { return m_height; }
 
     /**
-     * @brief Renvoie le chemin vers l'affiche n°index.
-     * L'array renvoyé n'est pas const parce que Environnement::wall_texture prend un char* 
-     * et pas un const char*...
+     * @brief Renvoie le numéro de texture pour l'affiche n°index.
      */
-    char* getPosterPath(uint index) const;
+    int wall_texture(uint index);
 
     /**
      * @brief Renvoie l'occupation de la case (x, y).
@@ -114,6 +109,11 @@ public:
      * on renvoie 1.
      */
     char data(int x, int y) override;
+
+    /**
+     * @brief Retourne la distance de la case (x, y) au trésor.
+     */
+    uint distanceFromTreasure(int x, int y) const;
 };
 
 #endif

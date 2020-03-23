@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mover.h"
+#include "Sound.h"
 #include "utils.h"
 
 class Labyrinthe;
@@ -13,6 +14,9 @@ class CMover: public Mover
 protected:
     Labyrinthe*     m_laby;
     uint            m_id;
+    int pv;
+    Sound* m_damage_hit;
+    Sound* m_heal_sound;
 
 public:
     /**
@@ -32,6 +36,14 @@ public:
     {
         return m_id;
     }
+
+    inline const int getPV() const {
+        return pv;
+    }
+
+    void hurt(Mover* m, int damage);
+
+    virtual void die() =0;
 
     /**
      * @brief Déplace l'objet du mieux possible.

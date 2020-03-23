@@ -5,22 +5,6 @@ Sound* Hunter::_hunter_hit  = new Sound("sons/hunter_hit.wav");
 Sound* Hunter::_wall_hit = new Sound("sons/hit_wall.wav");
 
 /*
- *	Tente un deplacement.
- */
-
-bool Hunter::move_aux(double dx, double dy)
-{
-    if (EMPTY == _l->data((int) ((_x + dx) / Environnement::scale),
-                          (int) ((_y + dy) / Environnement::scale)))
-    {
-        _x += dx;
-        _y += dy;
-        return true;
-    }
-    return false;
-}
-
-/*
  *	Constructeur.
  */
 

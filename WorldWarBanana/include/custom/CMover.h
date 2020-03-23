@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Mover.h"
-#include "Labyrinthe.h"
+#include "utils.h"
+
+class Labyrinthe;
 
 /**
  * @brief Ajoute un pointeur de labyrinthe par rapport à la classe Mover.
@@ -13,14 +15,27 @@ protected:
     uint            m_id;
 
 public:
-    CMover(int x, int y, Labyrinthe* l, const char* modele, uint id):
-        Mover   (x, y, l, modele),
-        m_laby  (l),
-        m_id    (id)
-    {}
+    /**
+     * @brief Constructeur
+     * @param x Abscisse de départ
+     * @param y Ordonnée de départ
+     * @param l Labyrinthe propriétaire
+     * @param modele Modèle 3D à utiliser, 0 si aucun
+     * @param id ID de l'objet, défini par l
+     */
+    CMover(int x, int y, Labyrinthe* l, const char* modele, uint id);
 
+    /**
+     * @brief Renvoie l'ID de l'objet (par rapport à son labyrinthe).
+     */
     inline uint id() const
     {
         return m_id;
     }
+
+    /**
+     * @brief Déplace l'objet du mieux possible.
+     * "Glisse" sur les obstacles si l'angle le permet.
+     */
+    virtual bool move(double dx, double dy) override;
 };

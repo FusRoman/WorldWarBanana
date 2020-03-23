@@ -866,9 +866,41 @@ void Labyrinthe::fillDataMovers()
 {
     for (int i = 0; i < _nguards; ++i)
     {
-        Mover* guard = _guards[i];
-        m_data[(int) guard->_y / scale][(int) guard->_x / scale] = 1;
+        CMover* guard = (CMover*) _guards[i];
+        m_data[(int) guard->_y / scale][(int) guard->_x / scale] = guard->id() + 2;
     }
+}
+
+
+/**************************************************************************************************
+ *
+ * Déplacements
+ *
+ *************************************************************************************************/
+
+bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
+{
+    int x = (mover->_x + dx) / scale;
+    int y = (mover->_y + dy) / scale;
+    if (m_data[y][x] == EMPTY || (uint) m_data[y][x] == mover->id() + 2)
+    {
+        // On libère l'ancienne case
+        int ox = mover->_x / scale;
+        int oy = mover->_y / scale;
+        m_data[oy][ox] = EMPTY;
+
+        mover->_x += dx;
+        mover->_y += dy;
+        m_data[y][x] = mover->id() + 2;
+
+        return true;
+    }
+    return false;
+}
+
+bool Labyrinthe::move(CMover* mover, double dx, double dy)
+{
+    return moveAux(mover, dx, dy) || moveAux(mover, dx, 0.0) || moveAux(mover, 0.0, dy);
 }
 
 

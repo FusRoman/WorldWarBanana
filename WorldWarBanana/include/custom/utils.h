@@ -2,6 +2,8 @@
 
 #include <list>
 
+typedef unsigned int uint;
+
 /**
  * @brief Retourne un entier dans [lower, upper].
  */

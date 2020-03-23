@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "Environnement.h"
+#include "CMover.h"
 
 #define NB_POSTERS 26
 class Labyrinthe : public Environnement
@@ -93,6 +94,11 @@ private:
      */
     void fillDataMovers();
 
+    /**
+     * @brief Fonction auxiliaire de move.
+     */
+    bool moveAux(CMover* mover, double dx, double dy);
+
 public:
     Labyrinthe(char*);
     virtual ~Labyrinthe();
@@ -118,4 +124,12 @@ public:
      * @brief Retourne la distance de la case (x, y) au trésor.
      */
     uint distanceFromTreasure(int x, int y) const;
+
+    /**
+     * @brief Renvoie true si mover peut se déplacer de (dx, dy).
+     * Effectue le déplacement si possible.
+     * Si mover se trouve bloqué par un obstacle, au lieu de ne rien
+     * faire, la fonction va tenter de faire glisser l'objet.
+     */
+    bool move(CMover* mover, double dx, double dy);
 };

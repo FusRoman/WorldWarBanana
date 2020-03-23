@@ -25,4 +25,6 @@ public:
     void fire(int angle_vertical);
     // clic droit.
     void right_click(bool shift, bool control);
+
+    virtual void die() override {}
 };

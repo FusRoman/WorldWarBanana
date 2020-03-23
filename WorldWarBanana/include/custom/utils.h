@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include "Sound.h"
 
 typedef unsigned int uint;
 
@@ -70,3 +71,11 @@ bool isLowerAlpha(char c);
  * @brief Renvoie true si c est un caractère alphabétique majuscule.
  */
 bool isUpperAlpha(char c);
+
+/**
+ * @brief Joue un son uniquement s'il ne vaut pas null.
+ */
+inline void play(Sound* s)
+{
+    if (s) s->play();
+}

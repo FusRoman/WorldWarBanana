@@ -13,31 +13,31 @@ bool CMover::move(double dx, double dy)
     return m_laby->move(this, dx, dy);
 }
 
-void CMover::hurt(Mover* m, int damage)
+void CMover::hurt(CMover* m, int damage)
 {
     if (damage >= 0)
     {
         play(m_damage_hit);
-        if (pv - damage <= 0)
+        if (m_pv - damage <= 0)
         {
-            pv = 0;
+            m_pv = 0;
             die();
         }
         else
         {
-            pv = pv - damage;
+            m_pv -= damage;
         }
     }
     else
     {
         play(m_heal_sound);
-        if (pv - damage >= 100)
+        if (m_pv - damage >= 100)
         {
-            pv = 100;
+            m_pv = 100;
         }
         else
         {
-            pv = pv - damage;
+            m_pv -= damage;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Labyrinthe_private {
 
     void error(const std::string& msg) 
     {
-        std::cerr << "Error line " << cursor.line << ", column " << cursor.column
+        std::cerr << "Error line " << cursor.line + 1 << ", column " << cursor.column + 1
             << ": " << msg << std::endl;
         exit(1);
     }
@@ -106,8 +106,6 @@ void Labyrinthe::parsePosters(std::ifstream& file)
     Cursor saved = cursor;
     while (std::getline(file, currentLine))
     {
-        newLine();
-
         // On ignore les espaces préliminaires
         uint i = ignoreSpace(currentLine, 0);
 
@@ -125,12 +123,16 @@ void Labyrinthe::parsePosters(std::ifstream& file)
             else if (isLowerAlpha(currentLine[i]))
             {
                 // On est sur une ligne qui associe une lettre minuscule à une affiche
-                int startPict = ignoreSpace(currentLine, i + 1);
-                int endPict   = ignoreNonSpace(currentLine, startPict);
+                uint startPict = ignoreSpace(currentLine, i + 1);
+                if (startPict == i + 1)
+                {
+                    cursor.column = i;
+                    error("Invalid line. Did you forget a '#'?");
+                }
+
+                uint endPict   = ignoreNonSpace(currentLine, startPict);
                 const char* path = currentLine.substr(startPict, endPict - startPict).c_str();
                 storePoster(currentLine[i] - 'a', path);
-                //postersPath[index] = root;
-                //postersPath[index].append(currentLine.substr(startPict, endPict - startPict));
 
                 // On vérifie qu'il n'y a rien d'autre sur la ligne
                 int next = ignoreSpace(currentLine, endPict);
@@ -157,6 +159,7 @@ void Labyrinthe::parsePosters(std::ifstream& file)
 
 		currentPos = file.tellg();
         saved = cursor;
+        newLine();
     }
 
 	error("No maze provided");
@@ -228,7 +231,7 @@ namespace Labyrinthe_private
     // A appeler quand on lit un poster et qu'on ne sait pas dans quelle direction il est orienté
     // Renvoie true si le poster est aligné
     // saved est le curseur positionné sur le tout début du labyrinthe
-    bool getPosterOrientation(const ParserState& state)
+    Type getPosterOrientation(const ParserState& state)
     {
         const int x = state.mazeX;
         const int y = state.mazeY;
@@ -248,20 +251,52 @@ namespace Labyrinthe_private
         {
             error("Poster can not be placed without any supporting wall.");
         }
-        return state.horizontal? h : v;
+        if (state.horizontal)
+        {
+            return h? ALIGNED_POSTER : PERPENDICULAR_POSTER;
+        }
+        else
+        {
+            return v? ALIGNED_POSTER : PERPENDICULAR_POSTER;
+        }
+    }
+
+    // Utile pour régler certains cas problématiques
+    // Lors de l'analyse horizontale, rencontrer une croix sans murs alignés après ou avant
+    // n'est pas forcément une erreur, s'il y a des murs verticaux au-dessus ou en-dessous
+    // Cette fonction permet de considérer de tels croix comme des murs verticaux
+    // Le parser peut s'occuper de tous les autres cas
+    Type getCrossOrientation(const ParserState& state)
+    {
+        const int x = state.mazeX;
+        const int y = state.mazeY;
+        char left   = getChar(state, x - 1, y), 
+             right  = getChar(state, x + 1, y), 
+             up     = getChar(state, x, y - 1),
+             bottom = getChar(state, x, y + 1);
+        bool h = left == '-' || left == '+' || right == '-' || right == '+',
+             v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
+        if (state.horizontal)
+        {
+            return (!h && v)? PERPENDICULAR_WALL : CROSS;
+        }
+        else
+        {
+            return (!v && h)? PERPENDICULAR_WALL : CROSS;
+        }
     }
 
     Type _type(char c, const ParserState& state)
     {
         if (isLowerAlpha(c))
         {
-            return getPosterOrientation(state)? ALIGNED_POSTER : PERPENDICULAR_POSTER;
+            return getPosterOrientation(state);
         }
 
         switch (c)
         {
         case '+':
-            return CROSS;
+            return getCrossOrientation(state);
 
         case ' ':
             return NOTHING;
@@ -555,12 +590,13 @@ void Labyrinthe::parseMaze(std::ifstream& file)
     std::string line;
     while (std::getline(file, line))
     {
-        newLine();
         maze.push_back(line);
         uint left = xmin, right = xmax;
         bool leftSet = false;
         for (uint x = 0; x < line.size(); ++x)
         {
+            cursor.column = x;
+
             if (line[x] == '\t')
             {
                 error("Tabulations are not allowed in the description of the maze for readability purpose.");
@@ -630,6 +666,7 @@ void Labyrinthe::parseMaze(std::ifstream& file)
         xmin = min(left, xmin);
         xmax = max(right, xmax);
         ++i;
+        newLine();
     }
 
     m_width = xmax - xmin + 1;

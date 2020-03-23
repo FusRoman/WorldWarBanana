@@ -121,6 +121,11 @@ public:
     char data(int x, int y) override;
 
     /**
+     * @brief Renvoie true si mover ne peut pas aller sur la case indiquée.
+     */
+    //bool blocked(CMover* mover, int x, int y);
+
+    /**
      * @brief Retourne la distance de la case (x, y) au trésor.
      */
     uint distanceFromTreasure(int x, int y) const;

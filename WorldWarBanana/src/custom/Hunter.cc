@@ -1,10 +1,14 @@
-#include "Chasseur.h"
+#include "Hunter.h"
+
+Sound* Hunter::_hunter_fire = new Sound("sons/hunter_fire.wav");
+Sound* Hunter::_hunter_hit  = new Sound("sons/hunter_hit.wav");
+Sound* Hunter::_wall_hit = new Sound("sons/hit_wall.wav");
 
 /*
  *	Tente un deplacement.
  */
 
-bool Chasseur::move_aux(double dx, double dy)
+bool Hunter::move_aux(double dx, double dy)
 {
     if (EMPTY == _l->data((int) ((_x + dx) / Environnement::scale),
                           (int) ((_y + dy) / Environnement::scale)))
@@ -20,12 +24,13 @@ bool Chasseur::move_aux(double dx, double dy)
  *	Constructeur.
  */
 
-Chasseur::Chasseur(Labyrinthe* l) : CMover(100, 80, l, 0)
+Hunter::Hunter(Labyrinthe* l, uint id): 
+    CMover(100, 80, l, 0, id)
 {
-    _hunter_fire = new Sound("sons/hunter_fire.wav");
+    /*_hunter_fire = new Sound("sons/hunter_fire.wav");
     _hunter_hit  = new Sound("sons/hunter_hit.wav");
     if (_wall_hit == 0)
-        _wall_hit = new Sound("sons/hit_wall.wav");
+        _wall_hit = new Sound("sons/hit_wall.wav");*/
 }
 
 /*
@@ -33,7 +38,7 @@ Chasseur::Chasseur(Labyrinthe* l) : CMover(100, 80, l, 0)
  *collisions sp�cifiques...)
  */
 
-bool Chasseur::process_fireball(float dx, float dy)
+bool Hunter::process_fireball(float dx, float dy)
 {
     // calculer la distance entre le chasseur et le lieu de l'explosion.
     float x     = (_x - _fb->get_x()) / Environnement::scale;
@@ -67,7 +72,7 @@ bool Chasseur::process_fireball(float dx, float dy)
  *	Tire sur un ennemi.
  */
 
-void Chasseur::fire(int angle_vertical)
+void Hunter::fire(int angle_vertical)
 {
     message("Woooshh...");
     _hunter_fire->play();
@@ -82,7 +87,7 @@ void Chasseur::fire(int angle_vertical)
  *	une utilisation des fonctions � tomber � et � rester_au_sol �
  */
 
-void Chasseur::right_click(bool shift, bool control)
+void Hunter::right_click(bool shift, bool control)
 {
     if (shift)
         _l->_guards[1]->rester_au_sol();

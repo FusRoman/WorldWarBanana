@@ -1,5 +1,4 @@
-#ifndef GARDIEN_H
-#define GARDIEN_H
+#pragma once
 
 #include <vector>
 
@@ -7,13 +6,13 @@
 
 class Labyrinthe;
 
-class Gardien : public CMover
+class Guard: public CMover
 {
 public:
     static const std::vector<const char*> modeles;
 
-    Gardien(Labyrinthe* l, const char* modele): CMover(120, 80, l, modele) {}
-    Gardien(Labyrinthe* l, int modele): CMover(120, 80, l, modeles.at(modele)) {}
+    Guard(Labyrinthe* l, const char* modele, uint id): CMover(120, 80, l, modele, id) {}
+    Guard(Labyrinthe* l, int modele, uint id): CMover(120, 80, l, modeles.at(modele), id) {}
 
     // mon gardien pense tr�s mal!
     void update(void){};
@@ -24,5 +23,3 @@ public:
     // quand a faire bouger la boule de feu...
     bool process_fireball(float dx, float dy) { return false; }
 };
-
-#endif

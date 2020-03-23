@@ -1,5 +1,4 @@
-#ifndef LABYRINTHE_H
-#define LABYRINTHE_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -120,5 +119,3 @@ public:
      */
     uint distanceFromTreasure(int x, int y) const;
 };
-
-#endif

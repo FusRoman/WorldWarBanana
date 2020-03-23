@@ -1,6 +1,6 @@
-#include "Gardien.h"
+#include "Guard.h"
 
-const std::vector<const char*> Gardien::modeles({
+const std::vector<const char*> Guard::modeles({
     "drfreak",
     "Marvin",
     "Potator",

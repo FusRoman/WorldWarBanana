@@ -1,5 +1,4 @@
-#ifndef CHASSEUR_H
-#define CHASSEUR_H
+#pragma once
 
 #include "CMover.h"
 #include "Sound.h"
@@ -7,21 +6,19 @@
 
 class Labyrinthe;
 
-class Chasseur : public CMover
+class Hunter: public CMover
 {
 private:
-    // accepte ou non un deplacement.
-    bool move_aux(double dx, double dy);
-
-public:
-    /*
-     *	Le son...
-     */
     static Sound* _hunter_fire; // bruit de l'arme du chasseur.
     static Sound* _hunter_hit;  // cri du chasseur touch�.
     static Sound* _wall_hit;    // on a tap� un mur.
 
-    Chasseur(Labyrinthe* l);
+    // accepte ou non un deplacement.
+    bool move_aux(double dx, double dy);
+
+public:
+
+    Hunter(Labyrinthe* l, uint id);
     // ne bouger que dans une case vide (on 'glisse' le long des obstacles)
     bool move(double dx, double dy)
     {
@@ -37,5 +34,3 @@ public:
     // clic droit.
     void right_click(bool shift, bool control);
 };
-
-#endif

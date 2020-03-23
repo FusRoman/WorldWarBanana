@@ -14,10 +14,23 @@
 
 Environnement* Environnement::init(char* filename) { return new Labyrinthe(filename); }
 
+Vec2f Labyrinthe::gridToReal(int x, int y)
+{
+    return Vec2f(x * scale, y * scale);
+}
+
+Vec2i Labyrinthe::realToGrid(float x, float y)
+{
+    return Vec2i(x / scale, y / scale);
+}
+
 // On utilise ce namespace pour ne pas que ces fonctions qu'on désire n'utiliser que dans ce fichier
 // ne rentrent pas en conflit avec d'autres fonctions locales à un fichier
 // (on pourrait aussi utiliser static il me semble)
 namespace Labyrinthe_private {
+
+    // Utilisé pour le système d'indexation des mover dans m_data
+    const int indexOffset = 2;
 
     typedef struct {
         int line;
@@ -346,8 +359,9 @@ namespace Labyrinthe_private
 
         case 'G': {
             Mover* guard = laby->_guards[state.indexGuards];
-            guard->_x = state.x * Environnement::scale;
-            guard->_y = state.y * Environnement::scale;
+            Vec2f p = Labyrinthe::gridToReal(state.x, state.y);
+            guard->_x = p.x;
+            guard->_y = p.y;
             ++state.indexGuards;
             break;
         }
@@ -360,8 +374,9 @@ namespace Labyrinthe_private
 
         case 'C': {
             Mover* hunter = laby->_guards[0];
-            hunter->_x = state.x * Environnement::scale;
-            hunter->_y = state.y * Environnement::scale;
+            Vec2f p = Labyrinthe::gridToReal(state.x, state.y);
+            hunter->_x = p.x;
+            hunter->_y = p.y;
             break;
         }
 
@@ -888,9 +903,8 @@ void Labyrinthe::flood()
 
     // Le joueur peut-il accéder au trésor ?
     Mover* hunter = _guards[0];
-    int x = hunter->_x / scale;
-    int y = hunter->_y / scale;
-    if (m_distances[y][x] == umax)
+    Vec2i p = realToGrid(hunter->_x, hunter->_y);
+    if (m_distances[p.y][p.x] == umax)
     {
         std::cerr << "The player has no way to get to the treasure." << std::endl;
         exit(1);
@@ -904,7 +918,8 @@ void Labyrinthe::fillDataMovers()
     for (int i = 0; i < _nguards; ++i)
     {
         CMover* guard = (CMover*) _guards[i];
-        m_data[(int) guard->_y / scale][(int) guard->_x / scale] = guard->id() + 2;
+        Vec2i p = realToGrid(guard->_x, guard->_y);
+        m_data[p.y][p.x] = guard->id() + indexOffset;
     }
 }
 
@@ -915,20 +930,23 @@ void Labyrinthe::fillDataMovers()
  *
  *************************************************************************************************/
 
+bool Labyrinthe::canGoTo(CMover* mover, int x, int y)
+{
+    return m_data[y][x] == EMPTY || (uint) m_data[y][x] == mover->id() + indexOffset;
+}
+
 bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
 {
-    int x = (mover->_x + dx) / scale;
-    int y = (mover->_y + dy) / scale;
-    if (m_data[y][x] == EMPTY || (uint) m_data[y][x] == mover->id() + 2)
+    Vec2i p = realToGrid(mover->_x + dx, mover->_y + dy);
+    if (canGoTo(mover, p.x, p.y))
     {
         // On libère l'ancienne case
-        int ox = mover->_x / scale;
-        int oy = mover->_y / scale;
-        m_data[oy][ox] = EMPTY;
+        Vec2i op = realToGrid(mover->_x, mover->_y);
+        m_data[op.y][op.x] = EMPTY;
 
         mover->_x += dx;
         mover->_y += dy;
-        m_data[y][x] = mover->id() + 2;
+        m_data[p.y][p.x] = mover->id() + indexOffset;
 
         return true;
     }
@@ -943,7 +961,7 @@ bool Labyrinthe::move(CMover* mover, double dx, double dy)
 
 /**************************************************************************************************
  *
- * Membres publics
+ * Autres membres publics
  *
  *************************************************************************************************/
 

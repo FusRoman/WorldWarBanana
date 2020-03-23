@@ -9,6 +9,10 @@ class Labyrinthe;
 
 class Guard: public CMover
 {
+private:
+    static Sound* damage_hit;
+    static Sound* heal_sound;
+
 public:
     static const std::vector<const char*> modeles;
 

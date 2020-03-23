@@ -7,6 +7,20 @@
 #include "CMover.h"
 
 #define NB_POSTERS 26
+
+template<class T>
+class Vec2
+{
+public:
+    const T x;
+    const T y;
+
+    Vec2(T x, T y): x(x), y(y) {}
+};
+
+typedef Vec2<int> Vec2i;
+typedef Vec2<float> Vec2f;
+
 class Labyrinthe : public Environnement
 {
 private:
@@ -100,6 +114,32 @@ private:
     bool moveAux(CMover* mover, double dx, double dy);
 
 public:
+    /**
+     * @brief Renvoie des coordonnées utilisables par les Mover depuis les coordonnées d'une case.
+     */
+    static Vec2f gridToReal(int x, int y);
+
+    /**
+     * @brief Overload de gridToReal.
+     */
+    inline static Vec2f gridToReal(Vec2i p) 
+    {
+        return gridToReal(p.x, p.y);
+    }
+
+    /**
+     * @brief Renvoie la case correspondant aux coordonnées d'un Mover.
+     */
+    static Vec2i realToGrid(float x, float y);
+
+    /**
+     * @brief Overload de realToGrid.
+     */
+    inline static Vec2i realToGrid(Vec2f p)
+    {
+        return realToGrid(p.x, p.y);
+    }
+
     Labyrinthe(char*);
     virtual ~Labyrinthe();
 
@@ -121,9 +161,9 @@ public:
     char data(int x, int y) override;
 
     /**
-     * @brief Renvoie true si mover ne peut pas aller sur la case indiquée.
+     * @brief Renvoie true si mover peut aller sur la case indiquée.
      */
-    //bool blocked(CMover* mover, int x, int y);
+    bool canGoTo(CMover* mover, int x, int y);
 
     /**
      * @brief Retourne la distance de la case (x, y) au trésor.

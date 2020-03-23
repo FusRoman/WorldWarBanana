@@ -1,4 +1,5 @@
 #include "Hunter.h"
+#include "Labyrinthe.h"
 
 Sound* Hunter::_hunter_fire = new Sound("sons/hunter_fire.wav");
 Sound* Hunter::_hunter_hit  = new Sound("sons/hunter_hit.wav");
@@ -29,8 +30,8 @@ bool Hunter::process_fireball(float dx, float dy)
     float y     = (_y - _fb->get_y()) / Environnement::scale;
     float dist2 = x * x + y * y;
     // on bouge que dans le vide!
-    if (EMPTY == _l->data((int) ((_fb->get_x() + dx) / Environnement::scale),
-                          (int) ((_fb->get_y() + dy) / Environnement::scale)))
+    Vec2i fbp = m_laby->realToGrid(_fb->get_x() + dx, _fb->get_y() + dy);
+    if (m_laby->canGoTo(this, fbp.x, fbp.y))
     {
         message("Woooshh ..... %d", (int) dist2);
         // il y a la place.

@@ -20,7 +20,7 @@ bool Chasseur::move_aux(double dx, double dy)
  *	Constructeur.
  */
 
-Chasseur::Chasseur(Labyrinthe* l) : Mover(100, 80, l, 0)
+Chasseur::Chasseur(Labyrinthe* l) : CMover(100, 80, l, 0)
 {
     _hunter_fire = new Sound("sons/hunter_fire.wav");
     _hunter_hit  = new Sound("sons/hunter_hit.wav");
@@ -29,8 +29,8 @@ Chasseur::Chasseur(Labyrinthe* l) : Mover(100, 80, l, 0)
 }
 
 /*
- *	Fait bouger la boule de feu (ceci est une exemple, à vous de traiter les
- *collisions spécifiques...)
+ *	Fait bouger la boule de feu (ceci est une exemple, ï¿½ vous de traiter les
+ *collisions spï¿½cifiques...)
  */
 
 bool Chasseur::process_fireball(float dx, float dy)
@@ -53,8 +53,8 @@ bool Chasseur::process_fireball(float dx, float dy)
     // faire exploser la boule de feu avec un bruit fonction de la distance.
     _wall_hit->play(1. - dist2 / dmax2);
     message("Booom...");
-    // teste si on a touché le trésor: juste pour montrer un exemple de la
-    // fonction « partie_terminee ».
+    // teste si on a touchï¿½ le trï¿½sor: juste pour montrer un exemple de la
+    // fonction ï¿½ partie_terminee ï¿½.
     if ((int) ((_fb->get_x() + dx) / Environnement::scale) == _l->_treasor._x &&
         (int) ((_fb->get_y() + dy) / Environnement::scale) == _l->_treasor._y)
     {
@@ -72,14 +72,14 @@ void Chasseur::fire(int angle_vertical)
     message("Woooshh...");
     _hunter_fire->play();
     _fb->init(/* position initiale de la boule */ _x, _y, 10.,
-              /* angles de visée */ angle_vertical, _angle);
+              /* angles de visï¿½e */ angle_vertical, _angle);
 }
 
 /*
- *	Clic droit: par défaut fait tomber le premier gardien.
+ *	Clic droit: par dï¿½faut fait tomber le premier gardien.
  *
  *	Inutile dans le vrai jeu, mais c'est juste pour montrer
- *	une utilisation des fonctions « tomber » et « rester_au_sol »
+ *	une utilisation des fonctions ï¿½ tomber ï¿½ et ï¿½ rester_au_sol ï¿½
  */
 
 void Chasseur::right_click(bool shift, bool control)

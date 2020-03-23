@@ -3,17 +3,17 @@
 
 #include <vector>
 
-#include "Mover.h"
+#include "CMover.h"
 
 class Labyrinthe;
 
-class Gardien : public Mover
+class Gardien : public CMover
 {
 public:
     static const std::vector<const char*> modeles;
 
-    Gardien(Labyrinthe* l, const char* modele): Mover(120, 80, l, modele) {}
-    Gardien(Labyrinthe* l, int modele): Mover(120, 80, l, modeles.at(modele)) {}
+    Gardien(Labyrinthe* l, const char* modele): CMover(120, 80, l, modele) {}
+    Gardien(Labyrinthe* l, int modele): CMover(120, 80, l, modeles.at(modele)) {}
 
     // mon gardien pense tr�s mal!
     void update(void){};

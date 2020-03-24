@@ -10,7 +10,7 @@ Sound* Hunter::_wall_hit = new Sound("sons/hit_wall.wav");
  */
 
 Hunter::Hunter(Labyrinthe* l, uint id):
-    CMover(100, 80, l, 0, id)
+    Character(100, 80, l, 0, id)
 {
     /*_hunter_fire = new Sound("sons/hunter_fire.wav");
     _hunter_hit  = new Sound("sons/hunter_hit.wav");

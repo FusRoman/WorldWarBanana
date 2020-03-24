@@ -1,12 +1,12 @@
 #pragma once
 
-#include "CMover.h"
+#include "Character.h"
 #include "Sound.h"
 #include <stdio.h>
 
 class Labyrinthe;
 
-class Hunter: public CMover
+class Hunter: public Character
 {
 private:
     static Sound* _hunter_fire; // bruit de l'arme du chasseur.

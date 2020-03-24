@@ -2,12 +2,12 @@
 
 #include <vector>
 
-#include "CMover.h"
+#include "Character.h"
 #include "Sound.h"
 
 class Labyrinthe;
 
-class Guard: public CMover
+class Guard: public Character
 {
 private:
     static Sound* damage_hit;

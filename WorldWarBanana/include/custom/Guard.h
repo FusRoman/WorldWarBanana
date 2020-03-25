@@ -27,5 +27,5 @@ public:
     // quand a faire bouger la boule de feu...
     bool process_fireball(float dx, float dy) { return false; }
 
-    virtual void die() override {};
+    virtual void die(CMover* m) override;
 };

@@ -25,3 +25,8 @@ Guard::Guard(Labyrinthe* l, int modele, uint id): Character(120, 80, l, modeles.
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
 }
+
+void Guard::die(CMover* m) 
+{
+    rester_au_sol();
+}

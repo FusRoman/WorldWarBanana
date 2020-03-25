@@ -1,9 +1,13 @@
 #include "Hunter.h"
+
+#include <string.h>
+
 #include "Labyrinthe.h"
 
 Sound* Hunter::_hunter_fire = new Sound("sons/hunter_fire.wav");
 Sound* Hunter::_hunter_hit  = new Sound("sons/hunter_hit.wav");
 Sound* Hunter::_wall_hit = new Sound("sons/hit_wall.wav");
+Sound* Hunter::heal_sound = new Sound("sons/heal_sound.wav");
 
 /*
  *	Constructeur.
@@ -12,10 +16,8 @@ Sound* Hunter::_wall_hit = new Sound("sons/hit_wall.wav");
 Hunter::Hunter(Labyrinthe* l, uint id):
     Character(100, 80, l, 0, id)
 {
-    /*_hunter_fire = new Sound("sons/hunter_fire.wav");
-    _hunter_hit  = new Sound("sons/hunter_hit.wav");
-    if (_wall_hit == 0)
-        _wall_hit = new Sound("sons/hit_wall.wav");*/
+    m_damage_hit = _hunter_hit;
+    m_heal_sound = heal_sound;
 }
 
 /*
@@ -78,4 +80,9 @@ void Hunter::right_click(bool shift, bool control)
         _l->_guards[1]->rester_au_sol();
     else
         _l->_guards[1]->tomber();
+}
+
+void Hunter::die(CMover* m)
+{
+    partie_terminee(false);
 }

@@ -36,6 +36,7 @@ public:
 
     /**
      * @brief Déplace l'objet du mieux possible.
+     * L'objet est considéré comme solide, i.e. les autrs ne pourront pas passer dessus.
      * "Glisse" sur les obstacles si l'angle le permet.
      */
     virtual bool move(double dx, double dy) override;

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "macros.h"
+#include "utils.h"
 #include "Environnement.h"
 #include "CMover.h"
 

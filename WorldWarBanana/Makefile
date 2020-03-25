@@ -39,18 +39,21 @@ FORMAT 			= clang-format-9 -i --verbose -style=file
 
 .PHONY: list format clean
 
-$(BUILDDIR)%.o: $(SRCDIR)%.cc
-$(BUILDDIR)%.o: $(SRCDIR)%.cc $(DEPENDSDIR)%.d | $(DEPENDSDIR)
-	$(MKDIR) $(@D:$(BUILDDIR)%=$(DEPENDSDIR)%)
-	$(MKDIR) $(@D)
-	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
-
 labh:	$(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LIB)DebOpenGL.o $(LIBS)
 
 maclabh:	$(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(LIB)MacOpenGL.o $(OBJ) $(MLIBS)
 	install_name_tool -change ./libfmodex.dylib /Developer/FMOD\ Programmers\ API\ Mac/api/lib/libfmodex.dylib $@
+
+$(BUILDDIR)%.o: $(SRCDIR)%.cc
+$(BUILDDIR)%.o: $(SRCDIR)%.cc $(DEPENDSDIR)%.d | $(DEPENDSDIR)
+	$(MKDIR) $(@D:$(BUILDDIR)%=$(DEPENDSDIR)%)
+	$(MKDIR) $(@D)
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
+
+$(DEPENDSDIR):
+	$(MKDIR) $@
 
 $(DEPENDS):
 
@@ -67,6 +70,6 @@ format:
 	$(FORMAT) $(INCLUDE)
 
 clean:
-	@rm -f labh maclabh $(OBJ)
+	@rm -f labh maclabh
 	@rm -rf $(BUILDDIR)
 	@rm -rf $(DEPENDSDIR)

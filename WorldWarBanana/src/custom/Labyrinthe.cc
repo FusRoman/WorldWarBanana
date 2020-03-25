@@ -9,8 +9,6 @@
 
 #include "Hunter.h"
 #include "Guard.h"
-#include "utils.h"
-#include "macros.h"
 
 Environnement* Environnement::init(char* filename) { return new Labyrinthe(filename); }
 
@@ -932,7 +930,7 @@ void Labyrinthe::fillDataMovers()
 
 bool Labyrinthe::canGoTo(CMover* mover, int x, int y)
 {
-    return m_data[y][x] == EMPTY || (uint) m_data[y][x] == mover->id() + indexOffset;
+    return m_data[y][x] == EMPTY || (mover && (uint) m_data[y][x] == mover->id() + indexOffset);
 }
 
 bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
@@ -979,23 +977,16 @@ Labyrinthe::Labyrinthe(char* filename)
         exit(1);
     }
     reset();
-    DEBUG(1);
 
-    // Gestion des affiches
+    // Parsing
     parsePosters(file);
-    DEBUG(2);
-
-    // Chargement du niveau
     parseMaze(file);
-    DEBUG(3);
+    file.close();
 
+    // Initialisation des données
     fillData();
     flood();
     fillDataMovers();
-    DEBUG(4);
-
-    file.close();
-    DEBUG(5);
 }
 
 Labyrinthe::~Labyrinthe()

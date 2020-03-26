@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CMover.h"
+//#include "CMover.h"
 
 //bool process_fireball(CMover* owner, FireBall* fb, float dx, float dy);
 

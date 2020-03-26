@@ -1,7 +1,7 @@
 #include "Character.h"
 
 Character::Character(int x, int y, Labyrinthe* l, const char* modele, uint id) :
-    CMover(x, y, l, modele, id), m_pv(100) {} 
+    CMover(x, y, l, modele, id), m_pv(100), m_weapon(this) {} 
 
 
 void Character::hurt(CMover* m, int damage)
@@ -31,4 +31,14 @@ void Character::hurt(CMover* m, int damage)
             m_pv -= damage;
         }
     }
+}
+
+bool Character::process_fireball(float dx, float dy)
+{
+    return m_weapon.process_fireball(_fb, dx, dy);
+}
+
+void Character::fire(int angle_vertical)
+{
+    m_weapon.fire(_fb, angle_vertical);
 }

@@ -27,6 +27,14 @@ public:
     CMover(int x, int y, Labyrinthe* l, const char* modele, uint id);
 
     /**
+     * @brief Renvoie le labyrinthe dans lequel cet objet se situe
+     */
+    inline Labyrinthe* getMaze() const
+    {
+        return m_laby;
+    }
+
+    /**
      * @brief Renvoie l'ID de l'objet (par rapport à son labyrinthe).
      */
     inline uint id() const

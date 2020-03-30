@@ -15,10 +15,6 @@ private:
 public:
 
     Hunter(Labyrinthe* l, uint id);
-    // le chasseur ne pense pas!
-    void update(void){};
-    // clic droit.
     void right_click(bool shift, bool control);
-
     virtual void die(CMover* m) override;
 };

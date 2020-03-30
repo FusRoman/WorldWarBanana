@@ -25,7 +25,7 @@ void Weapon::assertNeverFired(const std::string& msg)
 }
 
 Weapon::Weapon(CMover* owner):
-    Weapon(owner, "Banana Blaster", 10, 10, infiniteReach, onFire, onHit, onTrigger)
+    Weapon(owner, "Banana Blaster", 10, 30, infiniteReach, onFire, onHit, onTrigger)
 {}
 
 Weapon::Weapon(CMover* owner, const std::string& name, 
@@ -110,8 +110,19 @@ void Weapon::setOnTrigger(Sound* onTrigger)
 
 void Weapon::fire(FireBall* fb, int angle)
 {
-    play(m_fire);
-    fb->init(m_owner->_x, m_owner->_y, 10., angle, m_owner->_angle);
+    m_firedOnce = true;
+    uint tick = CMover::tick();
+    int ellapsed = tick - m_lastFired;
+    if (ellapsed >= m_cooldown)
+    {
+        m_lastFired = tick;
+        play(m_fire);
+        fb->init(m_owner->_x, m_owner->_y, 10., angle, m_owner->_angle);
+    }
+    else
+    {
+        play(m_trigger);
+    }
 }
 
 bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
@@ -129,10 +140,9 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
     }
 
     // Faire exploser la boule de feu avec un bruit fonction de la distance
-    float dmax2 = (laby->width()) * (laby->width()) + (laby->height()) * (laby->height());
     if (m_hit)
     {
-        m_hit->play(1. - dist2 / dmax2);
+        m_hit->play(max(0., 1. - dist2 / 1200.));
     }
 
     // Test sur le trésor

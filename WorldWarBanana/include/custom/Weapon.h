@@ -17,7 +17,7 @@ private:
     // Durée minimum entre chaque tir (en nombre d'updates du jeu)
     int         m_cooldown;
     // Date du dernier tir
-    int         m_lastFired;
+    uint         m_lastFired;
     
     // Portée de l'arme
     float       m_reach;

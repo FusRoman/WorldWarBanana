@@ -1,6 +1,6 @@
 #include "Guard.h"
 
-Sound* Guard::damage_hit = new Sound("sons/roblox_hit_damage.wav");
+Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
 
 const std::vector<const char*> Guard::modeles({

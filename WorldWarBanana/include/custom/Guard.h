@@ -19,9 +19,6 @@ public:
     Guard(Labyrinthe* l, const char* modele, uint id);
     Guard(Labyrinthe* l, int modele, uint id);
 
-    // mon gardien pense tr�s mal!
-    void update(void){};
-
     // ne sait pas tirer sur un ennemi.
     void fire(int angle_vertical) {}
     // quand a faire bouger la boule de feu...

@@ -2,6 +2,17 @@
 
 #include "macros.h"
 
+class Patrol : public State {
+
+    virtual void update(Guard& g){
+        
+    }
+
+    virtual void enter(Guard& g){}
+
+};
+
+
 Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
 
@@ -26,14 +37,17 @@ Guard::Guard(Labyrinthe* l, int modele, uint id)
 void Guard::hit(CMover* m, int damage)
 {
     Character::hit(m, damage);
-    message("gardiens : %d, pv : %d", m_id, m_pv);
-    if (damage > 0)
-    {
-        // tomber();
-    }
 }
 
 void Guard::die(CMover* m) { rester_au_sol(); }
+
+void Guard::fire(int angle) {
+
+}
+
+bool Guard::process_fireball(float dx, float dy) {
+    return false;
+}
 
 void Guard::update()
 {

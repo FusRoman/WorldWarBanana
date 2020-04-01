@@ -21,7 +21,6 @@ private:
     float m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
     float m_speedY;
     float m_vision; // distance de vision maximale du gardiens
-    Weapon* m_guardWeapon;
     class State {
 
         protected:

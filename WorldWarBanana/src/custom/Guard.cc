@@ -45,7 +45,16 @@ public:
 /****** Implémentation de Attack *******/
 Attack::Attack(Guard* g): State(g) {}
 
-void Attack::update() {}
+void Attack::update() {
+    if(!m_guard->canSeeHunter()){
+        m_guard->setState(new Pursuit(m_guard));
+    }
+    else {
+        if(m_guard->m_guardWeapon->canFire()){
+            m_guard->m_guardWeapon->fire(0);
+        }
+    }
+}
 void Attack::enter() {}
 
 
@@ -128,19 +137,21 @@ const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "
                                                "Blade"});
 
 Guard::Guard(Labyrinthe* l, const char* modele, uint id):
-    Character(120, 80, l, modele, id), m_speedX(1), m_speedY(1)
+    Character(120, 80, l, modele, id), m_speedX(1), m_speedY(1), m_vision(5*Environnement::scale)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
     m_state      = new Patrol(this);
+    m_guardWeapon = new Weapon(this, "Holy Banana", 10, 60, Weapon::infiniteReach);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id):
-    Character(120, 80, l, modeles.at(modele), id), m_speedX(1), m_speedY(1)
+    Character(120, 80, l, modeles.at(modele), id), m_speedX(1), m_speedY(1), m_vision(5*Environnement::scale)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
     m_state      = new Patrol(this);
+    m_guardWeapon = new Weapon(this, "Holy Banana", 10, 60, Weapon::infiniteReach);
 }
 
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }

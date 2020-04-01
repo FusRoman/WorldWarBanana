@@ -55,7 +55,7 @@ public:
 Defense::Defense(Guard* g): State(g) {}
 
 void Defense::update(){
-    
+
 }
 
 void Defense::enter(){
@@ -74,9 +74,9 @@ void Attack::update()
     }
     else
     {
-        if (m_guard->m_guardWeapon->canFire())
+        if (m_guard->m_weapon.canFire())
         {
-            m_guard->m_guardWeapon->fire(0);
+            m_guard->m_weapon.fire(0);
         }
     }
 }
@@ -161,7 +161,6 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id):
     m_damage_hit  = damage_hit;
     m_heal_sound  = heal_sound;
     m_state       = new Patrol(this);
-    m_guardWeapon = new Weapon(this, "Holy Banana", 10, 60, Weapon::infiniteReach);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id):
@@ -173,7 +172,6 @@ Guard::Guard(Labyrinthe* l, int modele, uint id):
     m_damage_hit  = damage_hit;
     m_heal_sound  = heal_sound;
     m_state       = new Patrol(this);
-    m_guardWeapon = new Weapon(this, "Holy Banana", 10, 60, Weapon::infiniteReach);
 }
 
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }

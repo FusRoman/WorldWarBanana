@@ -24,57 +24,57 @@ Vec2i Labyrinthe::realToGrid(float x, float y) { return Vec2i(x / scale, y / sca
 namespace Labyrinthe_private
 {
 
-typedef struct
-{
-    int line;
-    int column;
-} Cursor;
-
-Cursor cursor = {line : 0, column : 0};
-
-void reset()
-{
-    cursor.line   = 0;
-    cursor.column = 0;
-}
-
-void newLine()
-{
-    ++cursor.line;
-    cursor.column = 0;
-}
-
-void error(const std::string& msg)
-{
-    std::cerr << "Error line " << cursor.line + 1 << ", column " << cursor.column + 1 << ": " << msg
-              << std::endl;
-    exit(1);
-}
-
-void stray(char c)
-{
-    error(std::string("Stray character ") + c + " (ASCII: " + std::to_string((int) c) + ")");
-}
-
-// Renvoie l'index du premier caractère non blanc (ou size si aucun)
-int ignoreSpace(const std::string& line, unsigned int start)
-{
-    while (start < line.size() && isSpace(line[start]))
+    typedef struct
     {
-        ++start;
-    }
-    return start;
-}
+        int line;
+        int column;
+    } Cursor;
 
-// Renvoie l'index du dernier caractère non blanc ( ou size si aucun)
-int ignoreNonSpace(const std::string& line, unsigned int start)
-{
-    while (start < line.size() && !isSpace(line[start]))
+    Cursor cursor = {line : 0, column : 0};
+
+    void reset()
     {
-        ++start;
+        cursor.line   = 0;
+        cursor.column = 0;
     }
-    return start;
-}
+
+    void newLine()
+    {
+        ++cursor.line;
+        cursor.column = 0;
+    }
+
+    void error(const std::string& msg)
+    {
+        std::cerr << "Error line " << cursor.line + 1 << ", column " << cursor.column + 1 << ": "
+                  << msg << std::endl;
+        exit(1);
+    }
+
+    void stray(char c)
+    {
+        error(std::string("Stray character ") + c + " (ASCII: " + std::to_string((int) c) + ")");
+    }
+
+    // Renvoie l'index du premier caractère non blanc (ou size si aucun)
+    int ignoreSpace(const std::string& line, unsigned int start)
+    {
+        while (start < line.size() && isSpace(line[start]))
+        {
+            ++start;
+        }
+        return start;
+    }
+
+    // Renvoie l'index du dernier caractère non blanc ( ou size si aucun)
+    int ignoreNonSpace(const std::string& line, unsigned int start)
+    {
+        while (start < line.size() && !isSpace(line[start]))
+        {
+            ++start;
+        }
+        return start;
+    }
 } // namespace Labyrinthe_private
 using namespace Labyrinthe_private;
 
@@ -180,390 +180,380 @@ void Labyrinthe::parsePosters(std::ifstream& file)
 
 namespace Labyrinthe_private
 {
-enum Type
-{
-    CROSS,
-    ALIGNED_WALL,
-    PERPENDICULAR_WALL,
-    ALIGNED_POSTER,
-    PERPENDICULAR_POSTER,
-    GUARD,
-    HUNTER,
-    BOX,
-    _TREASURE,
-    NOTHING
-};
-
-// Structure de données pour le parser
-class ParserState
-{
-public:
-    // Coordonnées actuelles
-    int x, y;
-
-    // Analyse verticale ou horizontale ?
-    bool horizontal;
-
-    // Le mur actuel, en cours de formation
-    Wall currentWall;
-
-    // La liste des murs, à compléter au fur et à mesure
-    std::list<Wall>& walls;
-
-    // Index auxquels placer les différents objets
-    uint indexBoxes;
-    uint indexGuards;
-    uint indexPosters;
-
-    // Le labyrinthe à parser et les coordonnées du caractère actuel par rapport à ce vecteur.
-    std::vector<std::string> maze;
-    uint                     mazeX, mazeY;
-
-    // Fonction de transition
-    void (*transition)(Labyrinthe* laby, ParserState& state, char c);
-};
-
-char getChar(const ParserState& state, uint x, uint y)
-{
-    if (y >= state.maze.size())
+    enum Type
     {
-        return ' ';
-    }
-    else
+        CROSS,
+        ALIGNED_WALL,
+        PERPENDICULAR_WALL,
+        ALIGNED_POSTER,
+        PERPENDICULAR_POSTER,
+        OBJECT
+    };
+
+    // Structure de données pour le parser
+    class ParserState
     {
-        return (x <= state.maze[y].size()) ? state.maze[y][x] : ' ';
-    }
-}
+    public:
+        // Coordonnées actuelles
+        int x, y;
 
-// A appeler quand on lit un poster et qu'on ne sait pas dans quelle direction il est orienté
-// Renvoie true si le poster est aligné
-// saved est le curseur positionné sur le tout début du labyrinthe
-Type getPosterOrientation(const ParserState& state)
-{
-    const int x = state.mazeX;
-    const int y = state.mazeY;
-    // Sensible à l'overflow (mais a priori ce n'est pas notre principal souci
-    // si les labyrinthes sont assez grands pour causer ce genre de problèmes...)
-    char left = getChar(state, x - 1, y), right = getChar(state, x + 1, y),
-         up = getChar(state, x, y - 1), bottom = getChar(state, x, y + 1);
-    bool h = left == '-' || left == '+' || right == '-' || right == '+',
-         v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
-    if (h && v)
+        // Analyse verticale ou horizontale ?
+        bool horizontal;
+
+        // Le mur actuel, en cours de formation
+        Wall currentWall;
+
+        // La liste des murs, à compléter au fur et à mesure
+        std::list<Wall>& walls;
+
+        // Index auxquels placer les différents objets
+        uint indexBoxes;
+        uint indexGuards;
+        uint indexPosters;
+
+        // Le labyrinthe à parser et les coordonnées du caractère actuel par rapport à ce vecteur.
+        std::vector<std::string> maze;
+        uint                     mazeX, mazeY;
+
+        // Fonction de transition
+        void (*transition)(Labyrinthe* laby, ParserState& state, char c);
+    };
+
+    char getChar(const ParserState& state, uint x, uint y)
     {
-        error("Poster used in place of '+'.");
-    }
-    if (!h && !v)
-    {
-        error("Poster can not be placed without any supporting wall.");
-    }
-    if (state.horizontal)
-    {
-        return h ? ALIGNED_POSTER : PERPENDICULAR_POSTER;
-    }
-    else
-    {
-        return v ? ALIGNED_POSTER : PERPENDICULAR_POSTER;
-    }
-}
-
-// Utile pour régler certains cas problématiques
-// Lors de l'analyse horizontale, rencontrer une croix sans murs alignés après ou avant
-// n'est pas forcément une erreur, s'il y a des murs verticaux au-dessus ou en-dessous
-// Cette fonction permet de considérer de tels croix comme des murs verticaux
-// Le parser peut s'occuper de tous les autres cas
-Type getCrossOrientation(const ParserState& state)
-{
-    const int x    = state.mazeX;
-    const int y    = state.mazeY;
-    char      left = getChar(state, x - 1, y), right = getChar(state, x + 1, y),
-         up = getChar(state, x, y - 1), bottom = getChar(state, x, y + 1);
-    bool h = left == '-' || left == '+' || right == '-' || right == '+',
-         v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
-    if (state.horizontal)
-    {
-        return (!h && v) ? PERPENDICULAR_WALL : CROSS;
-    }
-    else
-    {
-        return (!v && h) ? PERPENDICULAR_WALL : CROSS;
-    }
-}
-
-Type _type(char c, const ParserState& state)
-{
-    if (isLowerAlpha(c))
-    {
-        return getPosterOrientation(state);
-    }
-
-    switch (c)
-    {
-    case '+':
-        return getCrossOrientation(state);
-
-    case ' ':
-        return NOTHING;
-
-    case 'G':
-        return GUARD;
-
-    case 'T':
-        return _TREASURE;
-
-    case 'X':
-        return BOX;
-
-    case 'C':
-        return HUNTER;
-
-    case '-':
-        return state.horizontal ? ALIGNED_WALL : PERPENDICULAR_WALL;
-
-    case '|':
-        return state.horizontal ? PERPENDICULAR_WALL : ALIGNED_WALL;
-
-    default:
-        stray(c);
-        return NOTHING; // Juste pour le compilateur
-    }
-}
-
-void placeObject(Labyrinthe* laby, ParserState& state, char c)
-{
-    if (state.horizontal)
-    {
-        // On ne veut placer les objets qu'une seule fois
-        return;
-    }
-
-    switch (c)
-    {
-    case 'X':
-    {
-        Box* box   = laby->_boxes + state.indexBoxes;
-        box->_x    = state.x;
-        box->_y    = state.y;
-        box->_ntex = 0;
-        ++state.indexBoxes;
-        break;
-    }
-
-    case 'G':
-    {
-        Mover* guard = laby->_guards[state.indexGuards];
-        Vec2f  p     = Labyrinthe::gridToReal(state.x, state.y);
-        guard->_x    = p.x;
-        guard->_y    = p.y;
-        ++state.indexGuards;
-        break;
-    }
-
-    case 'T':
-        // Grâce à la première passe, on sait qu'il n'y a qu'un seul trésor
-        laby->_treasor._x = state.x;
-        laby->_treasor._y = state.y;
-        break;
-
-    case 'C':
-    {
-        Mover* hunter = laby->_guards[0];
-        Vec2f  p      = Labyrinthe::gridToReal(state.x, state.y);
-        hunter->_x    = p.x;
-        hunter->_y    = p.y;
-        break;
-    }
-
-    default:
-        error("Labyrinthe::parseMaze: unexpected character");
-    }
-}
-
-void errorOnPerpendicularWall(ParserState& state)
-{
-    if (state.horizontal)
-    {
-        error("Met a vertical wall while reading a horizontal wall. You may want to put '+' at the "
-              "intersection.");
-    }
-    else
-    {
-        error("Met a horizontal wall while reading a vertical wall. You may want to put '+' at the "
-              "intersection.");
-    }
-}
-
-void errorOnEnd(ParserState& state)
-{
-    if (state.horizontal)
-    {
-        error("Horizontal wall without right end.");
-    }
-    else
-    {
-        error("Vertical wall without bottom end.");
-    }
-}
-
-// Etat initial : on n'est pas dans un mur
-void initial(Labyrinthe*, ParserState&, char);
-
-// Etat où on est en train de lire un mur dont il nous manque au moins encore un caractère
-void wall(Labyrinthe*, ParserState&, char);
-
-// Etat où on a précédemment lu un poster
-// Devant, il ne peut y avoir qu'un mur (sans poster)
-void poster(Labyrinthe*, ParserState&, char);
-
-// Etat où le mur qu'on lit est potentiellement fini
-// Si on trouve encore un mur, on considère que c'est le même
-// Mais si on ne trouve pas de mur, il n'y a pas non plus d'erreur
-void endOfWall(Labyrinthe*, ParserState&, char);
-
-void initial(Labyrinthe* laby, ParserState& state, char c)
-{
-    switch (_type(c, state))
-    {
-    case ALIGNED_WALL:
-    case ALIGNED_POSTER:
-        if (state.horizontal)
+        if (y >= state.maze.size())
         {
-            error("Horizontal wall without left end");
+            return ' ';
         }
         else
         {
-            error("Vertical wall without top end");
+            return (x <= state.maze[y].size()) ? state.maze[y][x] : ' ';
         }
-
-    case CROSS:
-        // On positionne le début du mur
-        state.currentWall._x1 = state.x;
-        state.currentWall._y1 = state.y;
-        state.transition      = wall;
-        break;
-
-    case PERPENDICULAR_WALL:
-    case PERPENDICULAR_POSTER:
-    case NOTHING:
-        // Rien à faire
-        break;
-
-    default:
-        placeObject(laby, state, c);
-        break;
     }
-}
 
-void wall(Labyrinthe* laby, ParserState& state, char c)
-{
-    switch (_type(c, state))
+    // A appeler quand on lit un poster et qu'on ne sait pas dans quelle direction il est orienté
+    // Renvoie true si le poster est aligné
+    // saved est le curseur positionné sur le tout début du labyrinthe
+    Type getPosterOrientation(const ParserState& state)
     {
-    case CROSS:
-        // Le mur pourrait être fini maintenant
-        // Mais pas forcément, on met donc le parser dans un état adapté
-        state.transition = endOfWall;
-        break;
-
-    case PERPENDICULAR_WALL:
-    case PERPENDICULAR_POSTER:
-        errorOnPerpendicularWall(state);
-
-    case ALIGNED_POSTER:
-    {
-        Wall* pict  = laby->_picts + state.indexPosters;
-        pict->_ntex = laby->wall_texture(c - 'a');
-        // pict->_ntex = 0;
-        pict->_x1 = state.x;
-        pict->_y1 = state.y;
+        const int x = state.mazeX;
+        const int y = state.mazeY;
+        // Sensible à l'overflow (mais a priori ce n'est pas notre principal souci
+        // si les labyrinthes sont assez grands pour causer ce genre de problèmes...)
+        char left = getChar(state, x - 1, y), right = getChar(state, x + 1, y),
+             up = getChar(state, x, y - 1), bottom = getChar(state, x, y + 1);
+        bool h = left == '-' || left == '+' || right == '-' || right == '+',
+             v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
+        if (h && v)
+        {
+            error("Poster used in place of '+'.");
+        }
+        if (!h && !v)
+        {
+            error("Poster can not be placed without any supporting wall.");
+        }
         if (state.horizontal)
         {
-            pict->_x2 = state.x + 2;
-            pict->_y2 = state.y;
+            return h ? ALIGNED_POSTER : PERPENDICULAR_POSTER;
         }
         else
         {
-            pict->_x2 = state.x;
-            pict->_y2 = state.y + 2;
+            return v ? ALIGNED_POSTER : PERPENDICULAR_POSTER;
         }
-        ++state.indexPosters;
-        state.transition = poster;
-        break;
     }
 
-    case ALIGNED_WALL:
-        // Rien à faire ici
-        break;
-
-    default:
-        errorOnEnd(state);
-    }
-}
-
-void poster(Labyrinthe* laby, ParserState& state, char c)
-{
-    switch (_type(c, state))
+    // Utile pour régler certains cas problématiques
+    // Lors de l'analyse horizontale, rencontrer une croix sans murs alignés après ou avant
+    // n'est pas forcément une erreur, s'il y a des murs verticaux au-dessus ou en-dessous
+    // Cette fonction permet de considérer de tels croix comme des murs verticaux
+    // Le parser peut s'occuper de tous les autres cas
+    Type getCrossOrientation(const ParserState& state)
     {
-    case CROSS:
-        state.transition = endOfWall;
-        break;
-
-    case ALIGNED_WALL:
-        state.transition = wall;
-        break;
-
-    case ALIGNED_POSTER:
+        const int x    = state.mazeX;
+        const int y    = state.mazeY;
+        char      left = getChar(state, x - 1, y), right = getChar(state, x + 1, y),
+             up = getChar(state, x, y - 1), bottom = getChar(state, x, y + 1);
+        bool h = left == '-' || left == '+' || right == '-' || right == '+',
+             v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
         if (state.horizontal)
         {
-            error("Found two horizontally consecutive posters.");
+            return (!h && v) ? PERPENDICULAR_WALL : CROSS;
         }
         else
         {
-            error("Found two vertically consecutive posters.");
+            return (!v && h) ? PERPENDICULAR_WALL : CROSS;
+        }
+    }
+
+    Type _type(char c, const ParserState& state)
+    {
+        if (isLowerAlpha(c))
+        {
+            return getPosterOrientation(state);
         }
 
-    case PERPENDICULAR_WALL:
-    case PERPENDICULAR_POSTER:
-        errorOnPerpendicularWall(state);
+        switch (c)
+        {
+        case '+':
+            return getCrossOrientation(state);
 
-    default:
-        errorOnEnd(state);
+        case ' ':
+        case 'G':
+        case 'T':
+        case 'X':
+        case 'C':
+            return OBJECT;
+
+        case '-':
+            return state.horizontal ? ALIGNED_WALL : PERPENDICULAR_WALL;
+
+        case '|':
+            return state.horizontal ? PERPENDICULAR_WALL : ALIGNED_WALL;
+
+        default:
+            stray(c);
+            return OBJECT; // Juste pour le compilateur
+        }
     }
-}
 
-void endOfWall(Labyrinthe* laby, ParserState& state, char c)
-{
-    switch (_type(c, state))
+    void placeObject(Labyrinthe* laby, ParserState& state, char c)
     {
-    // 3 case suivants : le mur ne s'est pas terminé finalement
-    // Pareil que pour wall
-    case ALIGNED_POSTER:
-    case CROSS:
-    case ALIGNED_WALL:
-        state.transition = wall;
-        wall(laby, state, c);
-        break;
-
-    // Pour les autres cas, le mur ne continue pas
-    // On l'ajoute, puis on revient sur le cas initial
-    default:
-        // Le mur a terminé sur le caractère précédent, pas sur (state.x, state.y)
         if (state.horizontal)
         {
-            state.currentWall._x2 = state.x - 1;
-            state.currentWall._y2 = state.y;
+            // On ne veut placer les objets qu'une seule fois
+            return;
+        }
+
+        switch (c)
+        {
+        case ' ':
+            break;
+
+        case 'X':
+        {
+            Box* box   = laby->_boxes + state.indexBoxes;
+            box->_x    = state.x;
+            box->_y    = state.y;
+            box->_ntex = 0;
+            ++state.indexBoxes;
+            break;
+        }
+
+        case 'G':
+        {
+            Mover* guard = laby->_guards[state.indexGuards];
+            Vec2f  p     = Labyrinthe::gridToReal(state.x, state.y);
+            guard->_x    = p.x;
+            guard->_y    = p.y;
+            ++state.indexGuards;
+            break;
+        }
+
+        case 'T':
+            // Grâce à la première passe, on sait qu'il n'y a qu'un seul trésor
+            laby->_treasor._x = state.x;
+            laby->_treasor._y = state.y;
+            break;
+
+        case 'C':
+        {
+            Mover* hunter = laby->_guards[0];
+            Vec2f  p      = Labyrinthe::gridToReal(state.x, state.y);
+            hunter->_x    = p.x;
+            hunter->_y    = p.y;
+            break;
+        }
+
+        default:
+            error("Labyrinthe::parseMaze: unexpected character");
+        }
+    }
+
+    void errorOnPerpendicularWall(ParserState& state)
+    {
+        if (state.horizontal)
+        {
+            error("Met a vertical wall while reading a horizontal wall. You may want to put '+' at "
+                  "the intersection.");
         }
         else
         {
-            state.currentWall._x2 = state.x;
-            state.currentWall._y2 = state.y + 1;
-            // +1 et pas -1 à cause de l'inversion sur l'axe y
+            error("Met a horizontal wall while reading a vertical wall. You may want to put '+' at "
+                  "the intersection.");
         }
-        state.currentWall._ntex = 0;
-        state.walls.push_back(state.currentWall);
-
-        state.transition = initial;
-        initial(laby, state, c);
     }
-}
+
+    void errorOnEnd(ParserState& state)
+    {
+        if (state.horizontal)
+        {
+            error("Horizontal wall without right end.");
+        }
+        else
+        {
+            error("Vertical wall without bottom end.");
+        }
+    }
+
+    // Etat initial : on n'est pas dans un mur
+    void initial(Labyrinthe*, ParserState&, char);
+
+    // Etat où on est en train de lire un mur dont il nous manque au moins encore un caractère
+    void wall(Labyrinthe*, ParserState&, char);
+
+    // Etat où on a précédemment lu un poster
+    // Devant, il ne peut y avoir qu'un mur (sans poster)
+    void poster(Labyrinthe*, ParserState&, char);
+
+    // Etat où le mur qu'on lit est potentiellement fini
+    // Si on trouve encore un mur, on considère que c'est le même
+    // Mais si on ne trouve pas de mur, il n'y a pas non plus d'erreur
+    void endOfWall(Labyrinthe*, ParserState&, char);
+
+    void initial(Labyrinthe* laby, ParserState& state, char c)
+    {
+        switch (_type(c, state))
+        {
+        case ALIGNED_WALL:
+        case ALIGNED_POSTER:
+            if (state.horizontal)
+            {
+                error("Horizontal wall without left end");
+            }
+            else
+            {
+                error("Vertical wall without top end");
+            }
+
+        case CROSS:
+            // On positionne le début du mur
+            state.currentWall._x1 = state.x;
+            state.currentWall._y1 = state.y;
+            state.transition      = wall;
+            break;
+
+        case PERPENDICULAR_WALL:
+        case PERPENDICULAR_POSTER:
+            // Rien à faire
+            break;
+
+        default:
+            placeObject(laby, state, c);
+            break;
+        }
+    }
+
+    void wall(Labyrinthe* laby, ParserState& state, char c)
+    {
+        switch (_type(c, state))
+        {
+        case CROSS:
+            // Le mur pourrait être fini maintenant
+            // Mais pas forcément, on met donc le parser dans un état adapté
+            state.transition = endOfWall;
+            break;
+
+        case PERPENDICULAR_WALL:
+        case PERPENDICULAR_POSTER:
+            errorOnPerpendicularWall(state);
+
+        case ALIGNED_POSTER:
+        {
+            Wall* pict  = laby->_picts + state.indexPosters;
+            pict->_ntex = laby->wall_texture(c - 'a');
+            // pict->_ntex = 0;
+            pict->_x1 = state.x;
+            pict->_y1 = state.y;
+            if (state.horizontal)
+            {
+                pict->_x2 = state.x + 2;
+                pict->_y2 = state.y;
+            }
+            else
+            {
+                pict->_x2 = state.x;
+                pict->_y2 = state.y + 2;
+            }
+            ++state.indexPosters;
+            state.transition = poster;
+            break;
+        }
+
+        case ALIGNED_WALL:
+            // Rien à faire ici
+            break;
+
+        default:
+            errorOnEnd(state);
+        }
+    }
+
+    void poster(Labyrinthe* laby, ParserState& state, char c)
+    {
+        switch (_type(c, state))
+        {
+        case CROSS:
+            state.transition = endOfWall;
+            break;
+
+        case ALIGNED_WALL:
+            state.transition = wall;
+            break;
+
+        case ALIGNED_POSTER:
+            if (state.horizontal)
+            {
+                error("Found two horizontally consecutive posters.");
+            }
+            else
+            {
+                error("Found two vertically consecutive posters.");
+            }
+
+        case PERPENDICULAR_WALL:
+        case PERPENDICULAR_POSTER:
+            errorOnPerpendicularWall(state);
+
+        default:
+            errorOnEnd(state);
+        }
+    }
+
+    void endOfWall(Labyrinthe* laby, ParserState& state, char c)
+    {
+        switch (_type(c, state))
+        {
+        // 3 case suivants : le mur ne s'est pas terminé finalement
+        // Pareil que pour wall
+        case ALIGNED_POSTER:
+        case CROSS:
+        case ALIGNED_WALL:
+            state.transition = wall;
+            wall(laby, state, c);
+            break;
+
+        // Pour les autres cas, le mur ne continue pas
+        // On l'ajoute, puis on revient sur le cas initial
+        default:
+            // Le mur a terminé sur le caractère précédent, pas sur (state.x, state.y)
+            if (state.horizontal)
+            {
+                state.currentWall._x2 = state.x - 1;
+                state.currentWall._y2 = state.y;
+            }
+            else
+            {
+                state.currentWall._x2 = state.x;
+                state.currentWall._y2 = state.y + 1;
+                // +1 et pas -1 à cause de l'inversion sur l'axe y
+            }
+            state.currentWall._ntex = 0;
+            state.walls.push_back(state.currentWall);
+
+            state.transition = initial;
+            initial(laby, state, c);
+        }
+    }
 } // namespace Labyrinthe_private
 
 uint Labyrinthe::allocate()
@@ -802,25 +792,25 @@ void Labyrinthe::parseMaze(std::ifstream& file)
 
 namespace Labyrinthe_private
 {
-typedef struct
-{
-    int  x;
-    int  y;
-    uint d;
-} BFSData;
+    typedef struct
+    {
+        int  x;
+        int  y;
+        uint d;
+    } BFSData;
 
-void floodNeighbour(Labyrinthe* laby, int x, int y, uint d, std::list<BFSData>& stack)
-{
-    if (x < 0 || x >= laby->width() || y < 0 || y >= laby->height())
+    void floodNeighbour(Labyrinthe* laby, int x, int y, uint d, std::list<BFSData>& stack)
     {
-        std::cerr << "The maze is not closed. Check its borders." << std::endl;
-        exit(1);
+        if (x < 0 || x >= laby->width() || y < 0 || y >= laby->height())
+        {
+            std::cerr << "The maze is not closed. Check its borders." << std::endl;
+            exit(1);
+        }
+        if (laby->data(x, y) == _EMPTY && laby->distanceFromTreasure(x, y) > d + 1)
+        {
+            stack.push_back({x, y, d + 1});
+        }
     }
-    if (laby->data(x, y) == _EMPTY && laby->distanceFromTreasure(x, y) > d + 1)
-    {
-        stack.push_back({x, y, d + 1});
-    }
-}
 } // namespace Labyrinthe_private
 
 // Remplit m_data sans considérer les Mover (pour l'algorithme de flood après)
@@ -975,7 +965,7 @@ bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
 
 void Labyrinthe::free(CMover* mover)
 {
-    Vec2i p = realToGrid(mover->_x, mover->_y);
+    Vec2i p          = realToGrid(mover->_x, mover->_y);
     m_data[p.y][p.x] = _EMPTY;
 }
 

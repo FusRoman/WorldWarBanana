@@ -18,6 +18,12 @@ float randomFloat(float lower, float upper)
     return urd(rng, decltype(urd)::param_type{lower, upper});
 }
 
+Vec2f randomVector()
+{
+    float angle = randomFloat(0.f, 2.f * 3.14159265359f);
+    return Vec2f(cos(angle), sin(angle));
+}
+
 bool isSpace(char c)
 {
     switch (c)

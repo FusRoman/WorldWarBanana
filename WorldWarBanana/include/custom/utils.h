@@ -1,9 +1,34 @@
 #pragma once
 
-#include "Sound.h"
 #include <list>
+#include <math.h>
+#include <iostream>
+
+#include "Sound.h"
 
 typedef unsigned int uint;
+
+template <class T> class Vec2
+{
+public:
+    const T x;
+    const T y;
+
+    Vec2(T x, T y): x(x), y(y) {}
+
+    float norm() const
+    {
+        return sqrt(x * x + y * y);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, Vec2 v)
+    {
+        return os << "(" << v.x << ", " << v.y << ")";
+    }
+};
+
+typedef Vec2<int>   Vec2i;
+typedef Vec2<float> Vec2f;
 
 /**
  * @brief Retourne un entier dans [lower, upper].
@@ -14,6 +39,11 @@ int randomInt(int lower, int upper);
  * @brief Retourne un flottant dans [low, upper[.
  */
 float randomFloat(float lower, int upper);
+
+/**
+ * @brief Retourne un vecteur unitaire aléatoire.
+ */
+Vec2f randomVector();
 
 template <class T> T max(T a, T b) { return (a > b) ? a : b; }
 

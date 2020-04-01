@@ -1,30 +1,36 @@
 #include "FireBallDX.h"
+
 #include "Labyrinthe.h"
+#include "Guard.h"
 
-/*bool process_fireball(CMover* owner, FireBall* fb, float dx, float dy)
+FireBallDX::FireBallDX(Labyrinthe* laby, uint id):
+    CMover(-Environnement::scale, -Environnement::scale, laby, Guard::modeles[0], id),
+    m_weapon(nullptr)
+{}
+
+void FireBallDX::setWeapon(Weapon* weapon)
 {
-    // calculer la distance entre le chasseur et le lieu de l'explosion.
-    Labyrinthe* laby = owner->getMaze();
-    //Vec2i p = laby->realToGrid(owner->_x - fb->get_x(), owner->_y - fb->get_y());
-    //float dist2 = p.x * p.x + p.y * p.y;
+    m_weapon = weapon;
+}
 
-    // on bouge que dans le vide!
-    Vec2i fbp = laby->realToGrid(fb->get_x() + dx, fb->get_y() + dy);
-    if (laby->canGoTo(owner, fbp.x, fbp.y))
+bool FireBallDX::block() const
+{
+    return false;
+}
+
+void FireBallDX::fire(int angle_vertical) {}
+
+bool FireBallDX::process_fireball(float dx, float dy)
+{
+    if (m_weapon)
     {
+        return m_weapon->process_fireball(_fb, dx, dy);
+    }
+    else
+    {
+        WARNING("FireBallDX::process_fireball called when unexpected");
         return true;
     }
-    // collision...
-    // calculer la distance maximum en ligne droite.
-    //float dmax2 = (laby->width()) * (laby->width()) + (laby->height()) * (laby->height());
-    // faire exploser la boule de feu avec un bruit fonction de la distance.
-    //_wall_hit->play(1. - max(dist2 / dmax2);
+}
 
-    // teste si on a touch� le tr�sor: juste pour montrer un exemple de la
-    // fonction � partie_terminee �.
-    if (owner->id() == 0 && fbp.x == laby->_treasor._x && fbp.y == laby->_treasor._y)
-    {
-        partie_terminee(true);
-    }
-    return false;
-}*/
+void FireBallDX::hit(CMover*, int) {}

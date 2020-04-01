@@ -1,10 +1,12 @@
 #include "Character.h"
 
+#include "macros.h"
+
 Character::Character(int x, int y, Labyrinthe* l, const char* modele, uint id) :
     CMover(x, y, l, modele, id), m_pv(100), m_weapon(this) {} 
 
 
-void Character::hurt(CMover* m, int damage)
+void Character::hit(CMover* m, int damage)
 {
     if (damage >= 0)
     {
@@ -40,5 +42,5 @@ bool Character::process_fireball(float dx, float dy)
 
 void Character::fire(int angle_vertical)
 {
-    m_weapon.fire(_fb, angle_vertical);
+    m_weapon.fire(angle_vertical);
 }

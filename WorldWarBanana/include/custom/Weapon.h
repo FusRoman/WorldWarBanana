@@ -4,6 +4,8 @@
 
 #include "CMover.h"
 
+class FireBallDX;
+
 class Weapon
 {
 private:
@@ -24,6 +26,12 @@ private:
     // Dégâts de l'arme (peut être négatif)
     int         m_damage;
 
+    // Nombre de boules de feu pour le jeu (ignorées pour les autres CMover)
+    // Doit être impair (pour qu'une boule puisse aller exactement dans la direction voulue)
+    uint        m_nbballs;
+    // Angle entre chaque boule de feu consécutive
+    int         m_angle;
+
     // Le son joué lorsqu'on tire avec l'arme
     Sound*      m_fire;
     // Le son joué lorsque la boule de feu générée par cette arme explose
@@ -31,10 +39,22 @@ private:
     // Le son joué lorsqu'on veut tirer, mais qu'on ne peut pas à cause du cooldown
     Sound*      m_trigger;
 
+    // Fonctionnement interne
+    uint        m_index;
+    FireBallDX* nextFireBall();
+
     void assert(bool condition, const std::string& msg);
     void assertNeverFired(const std::string& msg);
 
 public:
+    /**
+     * @brief Nombre maximal de boules supplémentaires pour le joueur.
+     * Les gardes sont tous limités à une seule boule.
+     * Le vrai nombre maximal de boules pour le jeu est maxNbBalls + 1,
+     * puisqu'il faut aussi compter celle du joueur.
+     */
+    static const uint maxNbBalls;
+
     /**
      * @brief Sons par défaut.
      */
@@ -88,10 +108,16 @@ public:
     inline Sound* getOnTrigger() const { return m_trigger; }
     void setOnTrigger(Sound* onTrigger);
 
+    inline uint getNbBalls() const { return m_nbballs; }
+    void setNbBalls(uint nbballs);
+
+    inline int angle() const { return m_angle; }
+    void setAngle(int angle);
+
     /**
      * @brief Lance une boule de feu.
      */
-    void fire(FireBall* fb, int angle);
+    void fire(int angle);
 
     /**
      * @brief Met à jour une boule de feu.

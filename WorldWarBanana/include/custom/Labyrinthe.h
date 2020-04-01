@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "Environnement.h"
 #include "CMover.h"
+#include "FireBallDX.h"
 
 #define NB_POSTERS 26
 
@@ -22,6 +23,18 @@ public:
 
 typedef Vec2<int> Vec2i;
 typedef Vec2<float> Vec2f;
+
+/**
+ * @brief Un enum pour communiquer avec les autres classes,
+ * représentant les données présentes sur chaque case.
+ */
+enum CellType
+{
+    _EMPTY = EMPTY,
+    WALL,
+    TREASURE,
+    CMOVER // Toujours en dernière place !
+};
 
 class Labyrinthe : public Environnement
 {
@@ -70,6 +83,14 @@ private:
      * # a fait maintenant référence à affiche4.jpg et plus affiche1.jpg
      */
 	void parsePosters(std::ifstream& file);
+
+    /**
+     * @brief Alloue l'espace nécessaire pour les caisses, les gardes et les posters.
+     * Instancie aussi les gardes (ce ne sera pas forcément le cas plus tard, 
+     * s'il y en a de plusieurs types).
+     * @return L'id du premier garde
+     */
+    uint allocate();
 
     /**
      * @brief Interprète le labyrinthe lui-même.
@@ -156,11 +177,23 @@ public:
 
     /**
      * @brief Renvoie l'occupation de la case (x, y).
-     * Renvoie EMPTY si la case est praticable, 1 sinon.
+     * Renvoie EMPTY si la case est praticable, autre chose sinon.
      * Si la case est en-dehors des dimensions du labyrinthe, 
      * on renvoie 1.
      */
     char data(int x, int y) override;
+
+    /**
+     * @brief Une méthode similaire à data, mais plus explicite.
+     * Si le résultat renvoyé est CMOVER, on peut appeler getMover avec les mêmes 
+     * argument sans crainte.
+     */
+    CellType getCellType(int x, int y);
+
+    /**
+     * @brief Renvoie le CMover en (x, y), nullptr si aucun.
+     */
+    CMover* getMover(int x, int y);
 
     /**
      * @brief Renvoie true si mover peut aller sur la case indiquée.
@@ -179,4 +212,12 @@ public:
      * faire, la fonction va tenter de faire glisser l'objet.
      */
     bool move(CMover* mover, double dx, double dy);
+
+    /**
+     * @brief Renvoie la boule de feu correspondant à l'index donné.
+     * Les boules de feu renvoyées par cette fonction sont exclusivement
+     * à l'usage du joueur.
+     * L'index donné doit être inférieur à Weapon::maxNbBalls.
+     */
+    FireBallDX* getFireBall(uint i) const;
 };

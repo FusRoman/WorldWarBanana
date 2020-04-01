@@ -71,4 +71,10 @@ public:
      * La valeur retournée par cette fonction ne devrait pas changer au cours de la vie d'un objet.
      */
     virtual bool block() const = 0;
+
+    /**
+     * @brief Appelé lorsque l'objet reçoit une boule de feu.
+     * damage peut être négatif.
+     */
+    virtual void hit(CMover* culprit, int damage) = 0;
 };

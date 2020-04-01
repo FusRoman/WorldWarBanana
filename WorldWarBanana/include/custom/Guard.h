@@ -24,5 +24,7 @@ public:
     // quand a faire bouger la boule de feu...
     bool process_fireball(float dx, float dy) { return false; }
 
+    // Le tombe tombe au sol pour un instant
+    virtual void hit(CMover* m, int damage);
     virtual void die(CMover* m) override;
 };

@@ -9,6 +9,8 @@
 
 #include "Hunter.h"
 #include "Guard.h"
+#include "Weapon.h"
+#include "FireBallDX.h"
 
 Environnement* Environnement::init(char* filename) { return new Labyrinthe(filename); }
 
@@ -26,22 +28,6 @@ Vec2i Labyrinthe::realToGrid(float x, float y)
 // ne rentrent pas en conflit avec d'autres fonctions locales à un fichier
 // (on pourrait aussi utiliser static il me semble)
 namespace Labyrinthe_private {
-
-    // Classe dont le seul intérêt est que update() soit appelée dessus
-    // Rajoutée automatiquement lorsqu'aucun CMover autre que le jouer n'est présent
-    // (si c'était le cas, update serait appelée sur eux, donc pas besoin)
-    class Updater: public CMover
-    {
-    public:
-        Updater(Labyrinthe* laby, uint id): CMover(0, 0, laby, nullptr, id) {}
-        virtual bool block() const override { return false; }
-        virtual void fire(int angle_vertical) override {}
-        virtual bool process_fireball(float dx, float dy) override { return true; }
-        virtual bool move(double dx, double dy) override { return false; }
-    };
-
-    // Utilisé pour le système d'indexation des mover dans m_data
-    const int indexOffset = 3;
 
     typedef struct {
         int line;
@@ -208,7 +194,7 @@ namespace Labyrinthe_private
         GUARD,
         HUNTER,
         BOX,
-        TREASURE,
+        _TREASURE,
         NOTHING
     };
 
@@ -329,7 +315,7 @@ namespace Labyrinthe_private
             return GUARD;
 
         case 'T':
-            return TREASURE;
+            return _TREASURE;
 
         case 'X':
             return BOX;
@@ -581,6 +567,34 @@ namespace Labyrinthe_private
     }
 }
 
+uint Labyrinthe::allocate()
+{
+    _picts = new Wall[_npicts];
+    _boxes = new Box[_nboxes];
+
+    // Gardes
+    uint nbguards = Weapon::maxNbBalls + _nguards;
+    _guards = new Mover*[nbguards];
+    _guards[0] = new Hunter(this, 0);
+
+    // Les boules de feu
+    uint i;
+    for (i = 1; i <= Weapon::maxNbBalls; ++i)
+    {
+        _guards[i] = new FireBallDX(this, i);
+    }
+
+    // Les gardes eux-mêmes
+    for (uint g = i; g < nbguards; ++g)
+    {
+        int rd = randomInt(0, Guard::modeles.size() - 1);
+        _guards[g] = new Guard(this, rd, g);
+    }
+
+    _nguards = nbguards;
+    return i;
+}
+
 void Labyrinthe::parseMaze(std::ifstream& file) 
 {
     _npicts  = 0;
@@ -709,25 +723,7 @@ void Labyrinthe::parseMaze(std::ifstream& file)
     // Fin de la première passe
 
     // Préparation pour les deux passes suivantes (allocations essentiellement)
-    _picts = new Wall[_npicts];
-    _boxes = new Box[_nboxes];
-    if (_nguards == 1)
-    {
-        // Il faut toujours au moins un CMover pour la mise à jour du compteur d'updates
-        _nguards = 2;
-        _guards = new Mover*[_nguards];
-        _guards[1] = new Updater(this, 1);
-    }
-    else
-    {
-        _guards = new Mover*[_nguards];
-        for (int i = 1; i < _nguards; ++i)
-        {
-            int rd = randomInt(0, Guard::modeles.size() - 1);
-            _guards[i] = new Guard(this, rd, i);
-        }
-    }
-    _guards[0] = new Hunter(this, 0);
+    uint g = allocate();
 
     std::list<Wall> walls;
     ParserState state =
@@ -738,7 +734,7 @@ void Labyrinthe::parseMaze(std::ifstream& file)
         Wall(),     // currentWall
         walls,      // walls
         0,          // indexBoxes
-        1,          // indexGuards (0 = hunter)
+        g,          // indexGuards
         0,          // indexPosters
         maze,       // maze
         0,          // mazeX
@@ -822,7 +818,7 @@ namespace Labyrinthe_private
             std::cerr << "The maze is not closed. Check its borders." << std::endl;
             exit(1);
         }
-        if (laby->data(x, y) == EMPTY && laby->distanceFromTreasure(x, y) > d + 1)
+        if (laby->data(x, y) == _EMPTY && laby->distanceFromTreasure(x, y) > d + 1)
         {
             stack.push_back({x, y, d + 1});
         }
@@ -832,14 +828,14 @@ namespace Labyrinthe_private
 // Remplit m_data sans considérer les Mover (pour l'algorithme de flood après)
 void Labyrinthe::fillData()
 {
-    // Allocation de m_data et remplissage avec EMPTY
+    // Allocation de m_data et remplissage avec _EMPTY
     m_data = new char*[m_height];
     for (uint y = 0; y < m_height; ++y)
     {
         char* row = new char[m_width];
         for (uint x = 0; x < m_width; ++x)
         {
-            row[x] = EMPTY;
+            row[x] = _EMPTY;
         }
         m_data[y] = row;
     }
@@ -855,7 +851,7 @@ void Labyrinthe::fillData()
             int end = max(wall->_x1, wall->_x2);
             for (int x = min(wall->_x1, wall->_x2); x <= end; ++x)
             {
-                m_data[wall->_y1][x] = 1;
+                m_data[wall->_y1][x] = WALL;
             }
         }
         else
@@ -864,7 +860,7 @@ void Labyrinthe::fillData()
             int end = max(wall->_y1, wall->_y2);
             for (int y = min(wall->_y1, wall->_y2); y <= end; ++y)
             {
-                m_data[y][wall->_x1] = 1;
+                m_data[y][wall->_x1] = WALL;
             }
         }
     }
@@ -873,11 +869,11 @@ void Labyrinthe::fillData()
     for (int i = 0; i < _nboxes; ++i)
     {
         Box* box = _boxes + i;
-        m_data[box->_y][box->_x] = 1;
+        m_data[box->_y][box->_x] = WALL;
     }
 
     // Trésor
-    m_data[_treasor._y][_treasor._x] = 2;
+    m_data[_treasor._y][_treasor._x] = TREASURE;
 
     // On ne s'occupe pas des Mover ici
     // Le but était juste de préparer le terrain pour flood
@@ -942,7 +938,7 @@ void Labyrinthe::fillDataMovers()
         if (guard->block())
         {
             Vec2i p = realToGrid(guard->_x, guard->_y);
-            m_data[p.y][p.x] = guard->id() + indexOffset;
+            m_data[p.y][p.x] = guard->id() + CMOVER;
         }
     }
 }
@@ -956,7 +952,7 @@ void Labyrinthe::fillDataMovers()
 
 bool Labyrinthe::canGoTo(CMover* mover, int x, int y)
 {
-    return m_data[y][x] == EMPTY || (mover && (uint) m_data[y][x] == mover->id() + indexOffset);
+    return m_data[y][x] == _EMPTY || (mover && (uint) m_data[y][x] == mover->id() + CMOVER);
 }
 
 bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
@@ -971,8 +967,8 @@ bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
 
         if (mover->block())
         {
-            m_data[op.y][op.x] = EMPTY;
-            m_data[p.y][p.x] = mover->id() + indexOffset;
+            m_data[op.y][op.x] = _EMPTY;
+            m_data[p.y][p.x] = mover->id() + CMOVER;
         }
 
         return true;
@@ -1057,6 +1053,30 @@ char Labyrinthe::data(int x, int y)
     }
 }
 
+CellType Labyrinthe::getCellType(int x, int y)
+{
+    switch (data(x, y))
+    {
+        case _EMPTY:
+            return _EMPTY;
+
+        case WALL:
+            return WALL;
+
+        case TREASURE:
+            return TREASURE;
+
+        default:
+            return CMOVER;
+    }
+}
+    
+CMover* Labyrinthe::getMover(int x, int y)
+{
+    char d = m_data[y][x];
+    return (d >= CMOVER)? static_cast<CMover*>(_guards[d - CMOVER]) : nullptr;
+}
+
 uint Labyrinthe::distanceFromTreasure(int x, int y) const
 {
     if (x >= 0 && x < (int) m_width && y >= 0 && y < (int) m_height)
@@ -1068,4 +1088,14 @@ uint Labyrinthe::distanceFromTreasure(int x, int y) const
         DEBUG("Warning! Labyrinthe::distanceFromTreasure: out-of-bounds access");
         return std::numeric_limits<uint>::max();
     }
+}
+
+FireBallDX* Labyrinthe::getFireBall(uint index) const
+{
+    if (index >= Weapon::maxNbBalls)
+    {
+        std::cerr << "Labyrinthe::getFireBall: invalid index " << index << std::endl;
+        exit(1);
+    }
+    return static_cast<FireBallDX*>(_guards[index + 1]);
 }

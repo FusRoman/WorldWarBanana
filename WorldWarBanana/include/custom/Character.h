@@ -36,7 +36,7 @@ public:
      * @brief Blesse l'objet.
      * Si damage est négatif, il sera au contraire soigné.
      */
-    void hurt(CMover* m, int damage);
+    virtual void hit(CMover* m, int damage) override;
 
     /**
      * @brief Fonction appelée quand l'objet meurt.
@@ -49,5 +49,4 @@ public:
     virtual void fire(int angle_vertical) override;
 
     virtual bool block() const override { return true; }
-
 };

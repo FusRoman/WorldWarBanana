@@ -17,8 +17,8 @@ public:
     int            _angle; // angle de déplacement/tir.
     void*          _model; // le modéle graphique.
 
-    Mover(int x, int y, Labyrinthe* l, const char* modele)
-        : _l((Environnement*) l), _fb(0), _x((float) x), _y((float) y), _angle(0)
+    Mover(int x, int y, Labyrinthe* l, const char* modele):
+        _l((Environnement*) l), _fb(0), _x((float) x), _y((float) y), _angle(0)
     {
         _model = init(modele);
     }

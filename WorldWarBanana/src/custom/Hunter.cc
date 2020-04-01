@@ -2,18 +2,17 @@
 
 #include <string.h>
 
-#include "Labyrinthe.h"
 #include "FireBallDX.h"
+#include "Labyrinthe.h"
 
-Sound* Hunter::_hunter_hit  = new Sound("sons/hunter_hit.wav");
-Sound* Hunter::heal_sound = new Sound("sons/heal_sound.wav");
+Sound* Hunter::_hunter_hit = new Sound("sons/hunter_hit.wav");
+Sound* Hunter::heal_sound  = new Sound("sons/heal_sound.wav");
 
 /*
  *	Constructeur.
  */
 
-Hunter::Hunter(Labyrinthe* l, uint id):
-    Character(100, 80, l, 0, id)
+Hunter::Hunter(Labyrinthe* l, uint id): Character(100, 80, l, 0, id)
 {
     m_damage_hit = _hunter_hit;
     m_heal_sound = heal_sound;
@@ -34,7 +33,4 @@ void Hunter::right_click(bool shift, bool control)
         _l->_guards[1]->tomber();
 }
 
-void Hunter::die(CMover* m)
-{
-    partie_terminee(false);
-}
+void Hunter::die(CMover* m) { partie_terminee(false); }

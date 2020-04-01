@@ -1,7 +1,7 @@
 #pragma once
 
-#include <list>
 #include "Sound.h"
+#include <list>
 
 typedef unsigned int uint;
 
@@ -15,29 +15,20 @@ int randomInt(int lower, int upper);
  */
 float randomFloat(float lower, int upper);
 
-template<class T>
-T max(T a, T b)
-{
-    return (a > b)? a : b;
-}
+template <class T> T max(T a, T b) { return (a > b) ? a : b; }
 
-template<class T>
-T min(T a, T b)
-{
-    return (a < b)? a : b;
-}
+template <class T> T min(T a, T b) { return (a < b) ? a : b; }
 
 /**
  * @brief Convertit une liste en un array avec la bonne taille.
  * La destruction de l'array (avec delete[]) est laissé à la charge de l'appelant.
- * Tous les éléments sont copiés, donc le type T doit avoir un constructeur vide 
+ * Tous les éléments sont copiés, donc le type T doit avoir un constructeur vide
  * et un opérateur = valide.
  */
-template<class T>
-T* toArray(const std::list<T>& list)
+template <class T> T* toArray(const std::list<T>& list)
 {
-    T* result = new T[list.size()];
-    int i = 0;
+    T*  result = new T[list.size()];
+    int i      = 0;
     for (const T& el: list)
     {
         result[i] = el;
@@ -77,5 +68,6 @@ bool isUpperAlpha(char c);
  */
 inline void play(Sound* s)
 {
-    if (s) s->play();
+    if (s)
+        s->play();
 }

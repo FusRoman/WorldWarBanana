@@ -5,15 +5,11 @@
 #include "Character.h"
 #include "Labyrinthe.h"
 #include "Sound.h"
+#include "utils.h"
 
 class Labyrinthe;
 
-class State {
 
-    virtual void update(Guard& g)=0;
-    virtual void enter(Guard& g)=0;
-
-};
 
 
 class Guard : public Character
@@ -21,9 +17,20 @@ class Guard : public Character
 private:
     static Sound* damage_hit;
     static Sound* heal_sound;
-    int m_guardianSpeedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
-    int m_guardianSpeedY;
-    bool m_defense; // indique si le gardien est en mode défense ou patrouille -> true si mode défense
+    float m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
+    float m_speedY;
+    class State {
+
+        virtual void update(Guard& g)=0;
+        virtual void enter(Guard& g)=0;
+
+    };
+    friend class Patrol;
+    friend class Defense;
+    friend class Dead;
+    friend class Attack;
+    friend class Pursuit;
+    friend class Damage;
 
 public:
     static const std::vector<const char*> modeles;
@@ -40,4 +47,6 @@ public:
     virtual void hit(CMover* m, int damage);
     virtual void die(CMover* m) override;
     virtual void update() override;
+
+
 };

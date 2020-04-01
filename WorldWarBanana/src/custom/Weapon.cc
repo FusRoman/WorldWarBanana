@@ -40,48 +40,48 @@ void Weapon::assertNeverFired(const std::string& msg)
     assert(!m_firedOnce, msg + ": can not change a weapon that is being used");
 }
 
-Weapon::Weapon(CMover* owner)
-    : Weapon(owner, "Banana Blaster", 10, 0, infiniteReach, onFire, onHit, onTrigger)
+Weapon::Weapon(CMover* owner):
+    Weapon(owner, "Banana Blaster", 10, 0, infiniteReach, onFire, onHit, onTrigger)
 {
     /*setNbBalls(11);
     setAngle(5);*/
-    /*setNbBalls(3);
-    setAngle(15);*/
+    setNbBalls(3);
+    setAngle(15);
 }
 
 Weapon::Weapon(CMover* owner, const std::string& name, int damage, uint cooldown, float reach,
-               Sound* onFire, Sound* onHit, Sound* onTrigger)
-    : m_owner(owner),
-      m_name(name),
-      m_firedOnce(false),
-      m_cooldown(cooldown),
-      m_lastFired(0),
-      m_reach(reach),
-      m_damage(damage),
-      m_nbballs(1),
-      m_angle(0),
-      m_fire(onFire),
-      m_hit(onHit),
-      m_trigger(onTrigger),
-      m_index(0)
+               Sound* onFire, Sound* onHit, Sound* onTrigger):
+    m_owner(owner),
+    m_name(name),
+    m_firedOnce(false),
+    m_cooldown(cooldown),
+    m_lastFired(0),
+    m_reach(reach),
+    m_damage(damage),
+    m_nbballs(1),
+    m_angle(0),
+    m_fire(onFire),
+    m_hit(onHit),
+    m_trigger(onTrigger),
+    m_index(0)
 {
     assert(owner != nullptr, "owner must not be null");
 }
 
-Weapon::Weapon(const Weapon& w)
-    : m_owner(w.m_owner),
-      m_name(w.m_name),
-      m_firedOnce(false),
-      m_cooldown(w.m_cooldown),
-      m_lastFired(0),
-      m_reach(w.m_reach),
-      m_damage(w.m_damage),
-      m_nbballs(w.m_nbballs),
-      m_angle(w.m_angle),
-      m_fire(w.m_fire),
-      m_hit(w.m_hit),
-      m_trigger(w.m_trigger),
-      m_index(w.m_index)
+Weapon::Weapon(const Weapon& w):
+    m_owner(w.m_owner),
+    m_name(w.m_name),
+    m_firedOnce(false),
+    m_cooldown(w.m_cooldown),
+    m_lastFired(0),
+    m_reach(w.m_reach),
+    m_damage(w.m_damage),
+    m_nbballs(w.m_nbballs),
+    m_angle(w.m_angle),
+    m_fire(w.m_fire),
+    m_hit(w.m_hit),
+    m_trigger(w.m_trigger),
+    m_index(w.m_index)
 {
 }
 

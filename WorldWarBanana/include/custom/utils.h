@@ -7,6 +7,12 @@
 
 #include "Sound.h"
 
+/**************************************************************************************************
+ * 
+ * Types utilitaires et fonctions diverses
+ * 
+ *************************************************************************************************/
+
 typedef unsigned int uint;
 
 template <class T> class Vec2
@@ -31,28 +37,6 @@ public:
 typedef Vec2<int>   Vec2i;
 typedef Vec2<float> Vec2f;
 
-const float pi = 3.14159265359;
-
-/**
- * @brief Retourne un entier dans [lower, upper].
- */
-int randomInt(int lower, int upper);
-
-/**
- * @brief Retourne un flottant dans [low, upper[.
- */
-float randomFloat(float lower, int upper);
-
-/**
- * @brief Retourne un vecteur unitaire aléatoire.
- */
-std::pair<Vec2f, float> randomVector();
-
-/**
- * @brief Convertit des radians en degrés.
- */
-int radiansToDegrees(float radians);
-
 template <class T> T max(T a, T b) { return (a > b) ? a : b; }
 
 template <class T> T min(T a, T b) { return (a < b) ? a : b; }
@@ -74,6 +58,49 @@ template <class T> T* toArray(const std::list<T>& list)
     }
     return result;
 }
+
+
+/**************************************************************************************************
+ * 
+ * Fonctions aléatoires
+ * 
+ *************************************************************************************************/
+
+/**
+ * @brief Retourne un entier dans [lower, upper].
+ */
+int randomInt(int lower, int upper);
+
+/**
+ * @brief Retourne un flottant dans [low, upper[.
+ */
+float randomFloat(float lower, int upper);
+
+/**
+ * @brief Retourne un vecteur unitaire aléatoire, et son angle en radians.
+ */
+std::pair<Vec2f, float> randomVector();
+
+
+/**************************************************************************************************
+ * 
+ * Fonctions sur les angles
+ * 
+ *************************************************************************************************/
+
+const float pi = 3.14159265359;
+
+/**
+ * @brief Convertit des radians en degrés.
+ */
+int radiansToDegrees(float radians);
+
+
+/**************************************************************************************************
+ * 
+ * Fonctions sur les caractères
+ * 
+ *************************************************************************************************/
 
 /**
  * @brief Renvoie true si c est un espace, une tabulation ou un retour de ligne.
@@ -101,13 +128,20 @@ bool isLowerAlpha(char c);
  */
 bool isUpperAlpha(char c);
 
+
+/**************************************************************************************************
+ * 
+ * Fonction sur les sons
+ * 
+ *************************************************************************************************/
+
 /**
  * @brief Joue un son uniquement s'il ne vaut pas null.
  */
-inline void play(Sound* s)
+inline void play(Sound* s, float intensity = 1.)
 {
     if (s)
     {
-        s->play();
+        s->play(intensity);
     }
 }

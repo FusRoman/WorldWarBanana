@@ -210,10 +210,7 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
     }
 
     // Faire exploser la boule de feu avec un bruit fonction de la distance
-    if (m_hit)
-    {
-        m_hit->play(max(0., 1. - dist2 / 1200.));
-    }
+    play(m_hit, max(0., 1. - dist2 / 1200.));
 
     switch (laby->getCellType(fbp.x, fbp.y))
     {

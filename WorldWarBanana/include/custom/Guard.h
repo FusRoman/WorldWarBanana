@@ -36,6 +36,7 @@ private:
 
     static Sound* damage_hit;
     static Sound* heal_sound;
+    static Sound* fire_sound;
 
     float m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
     float m_speedY;
@@ -45,6 +46,10 @@ private:
 
     void setState(State* state);
     bool canSeeHunter();
+    void face(const Vec2f& d);
+    void face(const Vec2f& d, float radians);
+    void walk(const Vec2f& d);
+    void walk(const Vec2f& d, float radians);
 
 public:
     static const std::vector<const char*> modeles;

@@ -88,12 +88,12 @@ void Defense::update()
             }
         }
         Vec2f unit(Vec2f(bestX, bestY).normalize());
-        m_guard->move(unit.x, unit.y);
+        m_guard->walk(unit);
     }
     else
     {
-        Vec2f rd = randomVector().first;
-        m_guard->move(rd.x, rd.y);       
+        auto rd = randomVector();
+        m_guard->walk(rd.first, rd.second); 
     }
 }
 
@@ -116,6 +116,9 @@ void Attack::update()
     }
     else
     {
+        Hunter* h = m_guard->getMaze()->getHunter();
+        Vec2f gh(h->_x - m_guard->_x, h->_y - m_guard->_y);
+        m_guard->face(gh.normalize());
         if (m_guard->m_weapon.canFire())
         {
             m_guard->fire(0);
@@ -148,9 +151,7 @@ void Patrol::updateDirection()
     m_maximumDeplacementLimit              = randomInt(60, 300);
     m_lastDirectionUpdate                  = 0;
     std::pair<Vec2f, float> newSpeedVector = randomVector();
-    m_guard->m_speedX                      = newSpeedVector.first.x;
-    m_guard->m_speedY                      = newSpeedVector.first.y;
-    m_guard->_angle                        = radiansToDegrees(newSpeedVector.second);
+    m_guard->face(newSpeedVector.first, newSpeedVector.second);
 }
 
 Patrol::Patrol(Guard* g): State(g) {}
@@ -217,6 +218,7 @@ void Dead::enter()
 
 Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
+Sound* Guard::fire_sound = new Sound("sons/pk_fire.wav");
 
 const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "garde", "Droid",
                                                "Lezard", "Samourai", "Serpent", "Squelette",
@@ -227,12 +229,13 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id):
     m_speedX        (1), 
     m_speedY        (1), 
     m_vision        (10 * Environnement::scale),
-    m_state         (new Defense(this)),
+    m_state         (new Patrol(this)),
     m_toBeDeleted   (nullptr)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
     m_weapon.setCooldown(30);
+    m_weapon.setOnFire(fire_sound);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id):
@@ -261,6 +264,30 @@ bool Guard::canSeeHunter()
     Hunter* h = getMaze()->getHunter();
     Vec2f   diffHunterGuard(h->_x - _x, h->_y - _y);
     return diffHunterGuard.norm() < m_vision;
+}
+
+void Guard::face(const Vec2f& d)
+{
+    face(d, d.angle());
+}
+
+void Guard::face(const Vec2f& d, float radians)
+{
+    m_speedX = d.x;
+    m_speedY = d.y;
+    _angle   = radiansToDegrees(radians);
+}
+
+void Guard::walk(const Vec2f& d)
+{
+    face(d);
+    move(d.x, d.y);
+}
+
+void Guard::walk(const Vec2f& d, float radians)
+{
+    face(d, radians);
+    move(d.x, d.y);
 }
 
 void Guard::update()

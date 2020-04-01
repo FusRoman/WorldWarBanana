@@ -78,12 +78,36 @@ public:
     }
 
     /**
+     * @brief Déterminant.
+     */
+    T det(const Vec2<T>& v) const
+    {
+        return x * v.y - y * v.x;
+    }
+
+    /**
      * @brief Retourne un vecteur unitaire de même direction.
      * Cette fonction ne fonctionne correctement que pour les types flottants.
      */
     Vec2<T> normalize() const
     {
         return *this / norm();
+    }
+
+    /**
+     * @brief Renvoie l'angle entre ce vecteur et (0, 1).
+     */
+    float angle() const
+    {
+        return atan2(y, x);
+    }
+
+    /**
+     * @brief Renvoie l'angle en radians entre deux vecteurs.
+     */
+    float angle(const Vec2<T>& v) const
+    {
+        return atan2(dot(v), det(v));
     }
 };
 

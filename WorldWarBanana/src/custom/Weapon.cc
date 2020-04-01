@@ -169,7 +169,7 @@ void Weapon::fire(int angle)
                 if (dx)
                 {
                     dx->setWeapon(this);
-                    dx->_fb->init(m_owner->_x, m_owner->_y, 10., angle, a);
+                    dx->_fb->init(m_owner->_x - Environnement::scale / 2, m_owner->_y - Environnement::scale / 2, 10., angle, a);
                 }
                 else
                 {
@@ -234,4 +234,11 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
         break;
     }
     return false;
+}
+
+bool Weapon::canFire() const
+{
+    uint tick     = CMover::tick();
+    int  ellapsed = tick - m_lastFired;
+    return ellapsed >= m_cooldown;
 }

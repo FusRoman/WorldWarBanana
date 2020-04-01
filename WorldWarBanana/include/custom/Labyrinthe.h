@@ -1,18 +1,17 @@
 #pragma once
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
+#include "CMover.h"
+#include "Environnement.h"
+#include "FireBallDX.h"
 #include "macros.h"
 #include "utils.h"
-#include "Environnement.h"
-#include "CMover.h"
-#include "FireBallDX.h"
 
 #define NB_POSTERS 26
 
-template<class T>
-class Vec2
+template <class T> class Vec2
 {
 public:
     const T x;
@@ -21,7 +20,7 @@ public:
     Vec2(T x, T y): x(x), y(y) {}
 };
 
-typedef Vec2<int> Vec2i;
+typedef Vec2<int>   Vec2i;
 typedef Vec2<float> Vec2f;
 
 /**
@@ -36,7 +35,7 @@ enum CellType
     CMOVER // Toujours en dernière place !
 };
 
-class Labyrinthe : public Environnement
+class Labyrinthe: public Environnement
 {
 private:
     /**
@@ -53,17 +52,17 @@ private:
     /**
      * @brief Largeur du labyrinthe.
      */
-    uint   m_width;
+    uint m_width;
 
     /**
      * @brief Hauteur du labyrinthe.
      */
-    uint   m_height;
+    uint m_height;
 
     /**
      * @brief Contient les chemins associés à chaque poster.
      */
-    char*  m_posters[NB_POSTERS];
+    char* m_posters[NB_POSTERS];
 
     /**
      * @brief Stocke un chemin vers une images dans m_posters à l'index donné.
@@ -82,11 +81,11 @@ private:
      * a affiche4.jpg
      * # a fait maintenant référence à affiche4.jpg et plus affiche1.jpg
      */
-	void parsePosters(std::ifstream& file);
+    void parsePosters(std::ifstream& file);
 
     /**
      * @brief Alloue l'espace nécessaire pour les caisses, les gardes et les posters.
-     * Instancie aussi les gardes (ce ne sera pas forcément le cas plus tard, 
+     * Instancie aussi les gardes (ce ne sera pas forcément le cas plus tard,
      * s'il y en a de plusieurs types).
      * @return L'id du premier garde
      */
@@ -101,8 +100,8 @@ private:
      *
      * @todo Pour l'instant, les commentaires à la fin du fichier ne sont pas tolérés !
      */
-	void parseMaze(std::ifstream& file);
-    
+    void parseMaze(std::ifstream& file);
+
     /**
      * @brief Remplis m_data pour les objets statiques (murs, caisses et trésor)
      * Le but de cette fonction est de préparer le terrain pour flood.
@@ -116,13 +115,13 @@ private:
      * (d'où le nom, fort astucieux si vous me demandez mon avis).
      * Additionnellement, l'algorithme vérifie deux critères de validité pour le labyrinthe :
      * - il est bien fermé
-     *      Si on sort des dimensions du labyrinthe au cours d'exécution, 
+     *      Si on sort des dimensions du labyrinthe au cours d'exécution,
      *      alors il n'est pas fermé et on doit lancer une erreur appropriée.
      * - le joueur peut accéder au trésor
-     *      Si on atteint jamais la position du joueur lors de l'algorithme, 
-     *      alors le trésor est complètement inacessible au joueur et le labyrinthe n'est pas valide. 
-     * Peu importe si d'autres objets sont hors de portée du joueur, 
-     * puisqu'ils ne sont pas essentiels pour gagner.
+     *      Si on atteint jamais la position du joueur lors de l'algorithme,
+     *      alors le trésor est complètement inacessible au joueur et le labyrinthe n'est pas
+     * valide. Peu importe si d'autres objets sont hors de portée du joueur, puisqu'ils ne sont pas
+     * essentiels pour gagner.
      */
     void flood();
 
@@ -145,10 +144,7 @@ public:
     /**
      * @brief Overload de gridToReal.
      */
-    inline static Vec2f gridToReal(Vec2i p) 
-    {
-        return gridToReal(p.x, p.y);
-    }
+    inline static Vec2f gridToReal(Vec2i p) { return gridToReal(p.x, p.y); }
 
     /**
      * @brief Renvoie la case correspondant aux coordonnées d'un Mover.
@@ -158,10 +154,7 @@ public:
     /**
      * @brief Overload de realToGrid.
      */
-    inline static Vec2i realToGrid(Vec2f p)
-    {
-        return realToGrid(p.x, p.y);
-    }
+    inline static Vec2i realToGrid(Vec2f p) { return realToGrid(p.x, p.y); }
 
     Labyrinthe(char*);
     virtual ~Labyrinthe();
@@ -178,14 +171,14 @@ public:
     /**
      * @brief Renvoie l'occupation de la case (x, y).
      * Renvoie EMPTY si la case est praticable, autre chose sinon.
-     * Si la case est en-dehors des dimensions du labyrinthe, 
+     * Si la case est en-dehors des dimensions du labyrinthe,
      * on renvoie 1.
      */
     char data(int x, int y) override;
 
     /**
      * @brief Une méthode similaire à data, mais plus explicite.
-     * Si le résultat renvoyé est CMOVER, on peut appeler getMover avec les mêmes 
+     * Si le résultat renvoyé est CMOVER, on peut appeler getMover avec les mêmes
      * argument sans crainte.
      */
     CellType getCellType(int x, int y);
@@ -204,6 +197,11 @@ public:
      * @brief Retourne la distance de la case (x, y) au trésor.
      */
     uint distanceFromTreasure(int x, int y) const;
+
+    /**
+     * @brief Libère la case sur laquelle se trouve le mover actuel.
+     */
+    void free(CMover* mover);
 
     /**
      * @brief Renvoie true si mover peut se déplacer de (dx, dy).

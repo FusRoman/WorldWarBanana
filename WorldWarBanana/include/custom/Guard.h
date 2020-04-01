@@ -8,13 +8,13 @@
 
 class Labyrinthe;
 
-class Guard : public Character
+class Guard: public Character
 {
 private:
     static Sound* damage_hit;
     static Sound* heal_sound;
-    int m_guardianSpeedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
-    int m_guardianSpeedY;
+    int m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
+    int m_speedY;
 
 public:
     static const std::vector<const char*> modeles;

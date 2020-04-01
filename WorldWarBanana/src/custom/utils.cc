@@ -4,16 +4,16 @@
 
 int randomInt(int lower, int upper)
 {
-    static std::random_device rd;
-    static std::mt19937 rng(rd());
+    static std::random_device                                rd;
+    static std::mt19937                                      rng(rd());
     std::uniform_int_distribution<std::mt19937::result_type> uid(lower, upper);
     return uid(rng);
 }
 
-float randomFloat(float lower, float upper) 
+float randomFloat(float lower, float upper)
 {
-    static std::random_device rd;
-    static std::mt19937 rng(rd());
+    static std::random_device             rd;
+    static std::mt19937                   rng(rd());
     std::uniform_real_distribution<float> urd;
     return urd(rng, decltype(urd)::param_type{lower, upper});
 }

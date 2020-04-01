@@ -2,8 +2,8 @@
 
 #include "macros.h"
 
-Character::Character(int x, int y, Labyrinthe* l, const char* modele, uint id)
-    : CMover(x, y, l, modele, id), m_pv(100), m_weapon(this)
+Character::Character(int x, int y, Labyrinthe* l, const char* modele, uint id):
+    CMover(x, y, l, modele, id), m_pv(100), m_weapon(this)
 {
 }
 

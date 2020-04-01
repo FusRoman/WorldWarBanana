@@ -7,25 +7,23 @@
 class Labyrinthe;
 
 /**
- * @brief Une extension de Mover qui servira de classe de base pour tous les autres Mover de ce projet.
- */ 
+ * @brief Une extension de Mover qui servira de classe de base pour tous les autres Mover de ce
+ * projet.
+ */
 class CMover: public Mover
 {
 private:
-    static uint     m_tick;
+    static uint m_tick;
 
 protected:
-    Labyrinthe*     m_laby;
-    const uint      m_id;
-    
+    Labyrinthe* m_laby;
+    const uint  m_id;
+
 public:
     /**
      * @brief Renvoie le nombre d'updates depuis le début du jeu.
      */
-    inline static uint tick()
-    {
-        return m_tick;
-    }
+    inline static uint tick() { return m_tick; }
 
     /**
      * @brief Constructeur
@@ -40,18 +38,12 @@ public:
     /**
      * @brief Renvoie le labyrinthe dans lequel cet objet se situe
      */
-    inline Labyrinthe* getMaze() const
-    {
-        return m_laby;
-    }
+    inline Labyrinthe* getMaze() const { return m_laby; }
 
     /**
      * @brief Renvoie l'ID de l'objet (par rapport à son labyrinthe).
      */
-    inline uint id() const
-    {
-        return m_id;
-    }
+    inline uint id() const { return m_id; }
 
     /**
      * @brief Déplace l'objet du mieux possible.

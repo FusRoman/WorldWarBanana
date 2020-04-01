@@ -10,7 +10,7 @@
 class FireBallDX: public CMover
 {
 private:
-    Weapon*     m_weapon;
+    Weapon* m_weapon;
 
 public:
     FireBallDX(Labyrinthe* laby, uint id);

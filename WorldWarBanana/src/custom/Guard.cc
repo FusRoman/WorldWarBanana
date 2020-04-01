@@ -9,15 +9,15 @@ const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "
                                                "Lezard", "Samourai", "Serpent", "Squelette",
                                                "Blade"});
 
-Guard::Guard(Labyrinthe* l, const char* modele, uint id)
-    : Character(120, 80, l, modele, id), m_guardianSpeedX(1), m_guardianSpeedY(1)
+Guard::Guard(Labyrinthe* l, const char* modele, uint id):
+    Character(120, 80, l, modele, id), m_speedX(1), m_speedY(1)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
 }
 
-Guard::Guard(Labyrinthe* l, int modele, uint id)
-    : Character(120, 80, l, modeles.at(modele), id), m_guardianSpeedX(1), m_guardianSpeedY(1)
+Guard::Guard(Labyrinthe* l, int modele, uint id):
+    Character(120, 80, l, modeles.at(modele), id), m_speedX(1), m_speedY(1)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
@@ -37,15 +37,16 @@ void Guard::die(CMover* m) { rester_au_sol(); }
 
 void Guard::update()
 {
+    Character::update();
     if (m_pv > 0)
     {
         Labyrinthe* laby         = getMaze();
-        Vec2i       nextPosition = laby->realToGrid(_x + m_guardianSpeedX, _y);
+        Vec2i       nextPosition = laby->realToGrid(_x + m_speedX, _y);
         switch (laby->getCellType(nextPosition.x, nextPosition.y))
         {
         case WALL:
         case TREASURE:
-            if (m_guardianSpeedX > 0)
+            if (m_speedX > 0)
             {
                 _angle = 90;
             }
@@ -53,11 +54,11 @@ void Guard::update()
             {
                 _angle = 270;
             }
-            m_guardianSpeedX *= -1;
+            m_speedX *= -1;
             break;
         default:
             break;
         }
-        move(m_guardianSpeedX, 0);
+        move(m_speedX, 0);
     }
 }

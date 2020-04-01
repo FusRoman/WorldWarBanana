@@ -1063,6 +1063,11 @@ CellType Labyrinthe::getCellType(int x, int y)
     }
 }
 
+Hunter* Labyrinthe::getHunter()
+{
+    return static_cast<Hunter*>(_guards[0]);
+}
+
 CMover* Labyrinthe::getMover(int x, int y)
 {
     char d = m_data[y][x];

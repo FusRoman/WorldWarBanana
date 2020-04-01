@@ -3,8 +3,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "CMover.h"
 #include "Environnement.h"
+#include "Hunter.h"
 #include "FireBallDX.h"
 #include "macros.h"
 #include "utils.h"
@@ -170,6 +170,11 @@ public:
      * argument sans crainte.
      */
     CellType getCellType(int x, int y);
+
+    /**
+     * @brief Renvoie le chasseur.
+     */
+    Hunter* getHunter();
 
     /**
      * @brief Renvoie le CMover en (x, y), nullptr si aucun.

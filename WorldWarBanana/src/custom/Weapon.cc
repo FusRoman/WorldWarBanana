@@ -5,7 +5,7 @@
 #include "FireBallDX.h"
 #include "Labyrinthe.h"
 
-#define NEVER_FIRED assertNeverFired(__FUNCTION__)
+#define NEVER_FIRED /*assertNeverFired(__FUNCTION__)*/
 
 Sound* Weapon::onFire    = new Sound("sons/hunter_fire.wav");
 Sound* Weapon::onHit     = new Sound("sons/hit_wall.wav");

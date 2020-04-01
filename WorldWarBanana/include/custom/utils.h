@@ -6,36 +6,15 @@
 #include <iostream>
 
 #include "Sound.h"
+#include "Vec2.h"
 
 /**************************************************************************************************
  * 
- * Types utilitaires et fonctions diverses
+ * Fonctions diverses
  * 
  *************************************************************************************************/
 
 typedef unsigned int uint;
-
-template <class T> class Vec2
-{
-public:
-    const T x;
-    const T y;
-
-    Vec2(T x, T y): x(x), y(y) {}
-
-    float norm() const
-    {
-        return sqrt(x * x + y * y);
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, Vec2 v)
-    {
-        return os << "(" << v.x << ", " << v.y << ")";
-    }
-};
-
-typedef Vec2<int>   Vec2i;
-typedef Vec2<float> Vec2f;
 
 template <class T> T max(T a, T b) { return (a > b) ? a : b; }
 

@@ -51,8 +51,14 @@ public:
     virtual void enter() override;
 };
 
-/****** Implémentation de Defense *******/
-Defense::Defense(Guard* g): State(g) {}
+
+/**************************************************************************************************
+ * 
+ * Defense
+ * 
+ *************************************************************************************************/
+
+Defense::Defense(Guard* g): State(g, "Defense") {}
 
 void Defense::update()
 {
@@ -63,31 +69,44 @@ void Defense::update()
     float goToTreasure = randomFloat(0.0, 1.0);
     if (goToTreasure < 0.5)
     {
-        int  bestCaseX       = 0;
-        int  bestCaseY       = 0;
-        uint valueOfbestCase = 3567587328;
+        Labyrinthe* maze = m_guard->getMaze();
+        Vec2i p = maze->realToGrid(m_guard->_x, m_guard->_y);
+        int bestX = p.x;
+        int bestY = p.y;
+        uint bestValue = maze->distanceFromTreasure(p.x, p.y);
         for (int i = -1; i <= 1; ++i)
         {
             for (int j = -1; j <= 1; ++j)
             {
-                uint tmp =
-                    m_guard->getMaze()->distanceFromTreasure(m_guard->_x + i, m_guard->_y + j);
-                if (tmp < valueOfbestCase)
+                uint tmp = maze->distanceFromTreasure(p.x + i, p.y + j);
+                if (tmp < bestValue)
                 {
-                    valueOfbestCase = tmp;
-                    bestCaseX       = i;
-                    bestCaseY       = j;
+                    bestValue   = tmp;
+                    bestX       = i;
+                    bestY       = j;
                 }
             }
         }
-        m_guard->move(bestCaseX, bestCaseY);
+        Vec2f unit(Vec2f(bestX, bestY).normalize());
+        m_guard->move(unit.x, unit.y);
+    }
+    else
+    {
+        Vec2f rd = randomVector().first;
+        m_guard->move(rd.x, rd.y);       
     }
 }
 
 void Defense::enter() {}
 
-/****** Implémentation de Attack *******/
-Attack::Attack(Guard* g): State(g) {}
+
+/**************************************************************************************************
+ * 
+ * Attack
+ * 
+ *************************************************************************************************/
+
+Attack::Attack(Guard* g): State(g, "Attack") {}
 
 void Attack::update()
 {
@@ -99,19 +118,31 @@ void Attack::update()
     {
         if (m_guard->m_weapon.canFire())
         {
-            m_guard->m_weapon.fire(0);
+            m_guard->fire(0);
         }
     }
 }
 void Attack::enter() {}
 
-/****** Implémentation de Pursuit *******/
-Pursuit::Pursuit(Guard* g): State(g) {}
+
+/**************************************************************************************************
+ * 
+ * Pursuit
+ * 
+ *************************************************************************************************/
+
+Pursuit::Pursuit(Guard* g): State(g, "Pursuit") {}
 
 void Pursuit::update() {}
 void Pursuit::enter() {}
 
-/****** Implémentation de Patrol *******/
+
+/**************************************************************************************************
+ * 
+ * Patrol
+ * 
+ *************************************************************************************************/
+
 void Patrol::updateDirection()
 {
     m_maximumDeplacementLimit              = randomInt(60, 300);
@@ -122,7 +153,7 @@ void Patrol::updateDirection()
     m_guard->_angle                        = radiansToDegrees(newSpeedVector.second);
 }
 
-Patrol::Patrol(Guard* g): State(g) {}
+Patrol::Patrol(Guard* g): State(g, "Patrol") {}
 
 void Patrol::update()
 {
@@ -161,8 +192,14 @@ void Patrol::update()
 
 void Patrol::enter() {}
 
-/****** Implémentation de Dead *******/
-Dead::Dead(Guard* g): State(g) {}
+
+/**************************************************************************************************
+ * 
+ * Dead
+ * 
+ *************************************************************************************************/
+
+Dead::Dead(Guard* g): State(g, "Dead") {}
 
 void Dead::update() {}
 void Dead::enter()
@@ -170,6 +207,13 @@ void Dead::enter()
     m_guard->rester_au_sol();
     m_guard->getMaze()->free(m_guard);
 }
+
+
+/**************************************************************************************************
+ * 
+ * Guard
+ * 
+ *************************************************************************************************/
 
 Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
@@ -202,10 +246,6 @@ Guard::Guard(Labyrinthe* l, int modele, uint id):
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }
 
 void Guard::die(CMover* m) { setState(new Dead(this)); }
-
-void Guard::fire(int angle) {}
-
-bool Guard::process_fireball(float dx, float dy) { return false; }
 
 void Guard::setState(State* state)
 {

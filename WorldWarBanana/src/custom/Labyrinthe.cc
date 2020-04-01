@@ -1099,7 +1099,7 @@ uint Labyrinthe::distanceFromTreasure(int x, int y) const
     }
     else
     {
-        DEBUG("Warning! Labyrinthe::distanceFromTreasure: out-of-bounds access");
+        WARNING("Labyrinthe::distanceFromTreasure: out-of-bounds access");
         return std::numeric_limits<uint>::max();
     }
 }

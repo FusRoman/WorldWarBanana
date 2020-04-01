@@ -45,4 +45,25 @@ public:
     virtual void fire(int angle_vertical) override;
 
     virtual bool block() const override { return true; }
+
+    /**
+     * @brief Renvoie l'arme actuelle.
+     */
+    inline const Weapon& getWeapon() const
+    {
+        return m_weapon;
+    }
+
+    inline Weapon& weapon()
+    {
+        return m_weapon;
+    }
+
+    /**
+     * @brief Change l'arme actuelle.
+     */
+    inline void setWeapon(const Weapon& weapon)
+    {
+        m_weapon = weapon;
+    }
 };

@@ -80,7 +80,6 @@ public:
 
     /**
      * @brief Constructeur par copie.
-     * Pour modifier une arme qui a pu être déjà utilisée
      */
     Weapon(const Weapon& w);
 

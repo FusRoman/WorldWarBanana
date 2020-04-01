@@ -9,44 +9,50 @@ private:
     int m_maximumDeplacementLimit;
     int m_lastDirectionUpdate;
 
-    void updateDirection(Guard& g)
+    void updateDirection()
     {
         m_maximumDeplacementLimit = randomInt(60, 300);
         m_lastDirectionUpdate     = 0;
-        g.m_speedX                = randomFloat(-1, 1);
-        g.m_speedY                = randomFloat(-1, 1);
+        Vec2f newSpeedVector      = randomVector();
+        m_guard->m_speedX         = newSpeedVector.x;
+        m_guard->m_speedY         = newSpeedVector.y;
     }
 
-    virtual void update(Guard& g)
+public:
+    Patrol(Guard* g): State(g) {}
+
+    virtual void update()
     {
         if (m_lastDirectionUpdate == m_maximumDeplacementLimit)
         {
-            updateDirection(g);
+            updateDirection();
         }
-        Labyrinthe* laby = g.getMaze();
-        Vec2f       nextPosition(g._x + g.m_speedX, g._y + g.m_speedY);
+        Labyrinthe* laby = m_guard->getMaze();
+        Vec2f       nextPosition(m_guard->_x + m_guard->m_speedX, m_guard->_y + m_guard->m_speedY);
         Vec2i       realPosition = laby->realToGrid(nextPosition.x, nextPosition.y);
         switch (laby->getCellType(realPosition.x, realPosition.y))
         {
         case WALL:
         case TREASURE:
-            updateDirection(g);
+            updateDirection();
             break;
         case CMOVER:
+        {
             CMover* moverOnNextPosition = laby->getMover(realPosition.x, realPosition.y);
-            if (moverOnNextPosition != nullptr && moverOnNextPosition->id() != g.id())
+            if (moverOnNextPosition != nullptr && moverOnNextPosition->id() != m_guard->id())
             {
-                updateDirection(g);
+                updateDirection();
             }
             break;
+        }
         default:
             break;
         }
-        g.move(g.m_speedX, g.m_speedY);
+        m_guard->move(m_guard->m_speedX, m_guard->m_speedY);
         ++m_lastDirectionUpdate;
     }
 
-    virtual void enter(Guard& g) {}
+    virtual void enter() {}
 };
 
 Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
@@ -61,6 +67,7 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id):
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
+    m_state      = new Patrol(this);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id):
@@ -68,6 +75,7 @@ Guard::Guard(Labyrinthe* l, int modele, uint id):
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
+    m_state      = new Patrol(this);
 }
 
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }
@@ -78,30 +86,15 @@ void Guard::fire(int angle) {}
 
 bool Guard::process_fireball(float dx, float dy) { return false; }
 
+void Guard::setState(State* state)
+{
+    //(facultatif: m_state->quit();)
+    m_state = state;
+    state->enter();
+}
+
 void Guard::update()
 {
     Character::update();
-    if (m_pv > 0)
-    {
-        Labyrinthe* laby         = getMaze();
-        Vec2i       nextPosition = laby->realToGrid(_x + m_speedX, _y);
-        switch (laby->getCellType(nextPosition.x, nextPosition.y))
-        {
-        case WALL:
-        case TREASURE:
-            if (m_speedX > 0)
-            {
-                _angle = 90;
-            }
-            else
-            {
-                _angle = 270;
-            }
-            m_speedX *= -1;
-            break;
-        default:
-            break;
-        }
-        move(m_speedX, 0);
-    }
+    m_state->update();
 }

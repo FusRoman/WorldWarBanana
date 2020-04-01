@@ -21,16 +21,24 @@ private:
     float m_speedY;
     class State {
 
-        virtual void update(Guard& g)=0;
-        virtual void enter(Guard& g)=0;
+        protected:
+            Guard* m_guard;
+
+        public:
+            State(Guard* g) : m_guard(g) {}
+            virtual void update()=0;
+            virtual void enter()=0;
 
     };
+    State* m_state; // état de l'automate du gardien
     friend class Patrol;
     friend class Defense;
     friend class Dead;
     friend class Attack;
     friend class Pursuit;
     friend class Damage;
+
+    void setState(State* state);
 
 public:
     static const std::vector<const char*> modeles;

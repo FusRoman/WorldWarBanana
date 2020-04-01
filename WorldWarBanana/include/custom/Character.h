@@ -27,7 +27,7 @@ public:
     /**
      * @brief Retourne le nombre de PVs restants de l'objet.
      */
-    inline const int getPV() const 
+    inline const int getPV() const
     {
         return m_pv;
     }

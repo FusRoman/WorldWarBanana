@@ -3,15 +3,18 @@
 #include <vector>
 
 #include "Character.h"
+#include "Labyrinthe.h"
 #include "Sound.h"
 
 class Labyrinthe;
 
-class Guard: public Character
+class Guard : public Character
 {
 private:
     static Sound* damage_hit;
     static Sound* heal_sound;
+    int m_guardianSpeedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
+    int m_guardianSpeedY;
 
 public:
     static const std::vector<const char*> modeles;
@@ -27,4 +30,5 @@ public:
     // Le tombe tombe au sol pour un instant
     virtual void hit(CMover* m, int damage);
     virtual void die(CMover* m) override;
+    virtual void update() override;
 };

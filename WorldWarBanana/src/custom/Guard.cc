@@ -54,14 +54,37 @@ public:
 /****** Implémentation de Defense *******/
 Defense::Defense(Guard* g): State(g) {}
 
-void Defense::update(){
-
+void Defense::update()
+{
+    if (m_guard->canSeeHunter())
+    {
+        m_guard->setState(new Attack(m_guard));
+    }
+    float goToTreasure = randomFloat(0.0, 1.0);
+    if (goToTreasure < 0.5)
+    {
+        int  bestCaseX       = 0;
+        int  bestCaseY       = 0;
+        uint valueOfbestCase = 3567587328;
+        for (int i = -1; i <= 1; ++i)
+        {
+            for (int j = -1; j <= 1; ++j)
+            {
+                uint tmp =
+                    m_guard->getMaze()->distanceFromTreasure(m_guard->_x + i, m_guard->_y + j);
+                if (tmp < valueOfbestCase)
+                {
+                    valueOfbestCase = tmp;
+                    bestCaseX       = i;
+                    bestCaseY       = j;
+                }
+            }
+        }
+        m_guard->move(bestCaseX, bestCaseY);
+    }
 }
 
-void Defense::enter(){
-
-}
-
+void Defense::enter() {}
 
 /****** Implémentation de Attack *******/
 Attack::Attack(Guard* g): State(g) {}
@@ -156,22 +179,24 @@ const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "
                                                "Blade"});
 
 Guard::Guard(Labyrinthe* l, const char* modele, uint id):
-    Character(120, 80, l, modele, id), m_speedX(1), m_speedY(1), m_vision(5 * Environnement::scale)
+    Character(120, 80, l, modele, id), m_speedX(1), m_speedY(1), m_vision(10 * Environnement::scale)
 {
-    m_damage_hit  = damage_hit;
-    m_heal_sound  = heal_sound;
-    m_state       = new Patrol(this);
+    m_damage_hit = damage_hit;
+    m_heal_sound = heal_sound;
+    m_state      = new Defense(this);
+    m_weapon.setCooldown(30);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id):
     Character(120, 80, l, modeles.at(modele), id),
     m_speedX(1),
     m_speedY(1),
-    m_vision(5 * Environnement::scale)
+    m_vision(10 * Environnement::scale)
 {
-    m_damage_hit  = damage_hit;
-    m_heal_sound  = heal_sound;
-    m_state       = new Patrol(this);
+    m_damage_hit = damage_hit;
+    m_heal_sound = heal_sound;
+    m_state      = new Defense(this);
+    m_weapon.setCooldown(30);
 }
 
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }

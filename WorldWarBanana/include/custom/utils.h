@@ -74,7 +74,7 @@ int randomInt(int lower, int upper);
 /**
  * @brief Retourne un flottant dans [low, upper[.
  */
-float randomFloat(float lower, int upper);
+float randomFloat(float lower, float upper);
 
 /**
  * @brief Retourne un vecteur unitaire aléatoire, et son angle en radians.

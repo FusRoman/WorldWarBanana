@@ -26,7 +26,7 @@ std::pair<Vec2f, float> randomVector()
 
 int radiansToDegrees(float radians)
 {
-    return (radians * 180.) / pi;
+    return ((radians * 180.) / pi) - 90;
 }
 
 bool isSpace(char c)

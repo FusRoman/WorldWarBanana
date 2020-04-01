@@ -11,11 +11,12 @@ private:
 
     void updateDirection()
     {
-        m_maximumDeplacementLimit = randomInt(60, 300);
-        m_lastDirectionUpdate     = 0;
-        Vec2f newSpeedVector      = randomVector();
-        m_guard->m_speedX         = newSpeedVector.x;
-        m_guard->m_speedY         = newSpeedVector.y;
+        m_maximumDeplacementLimit              = randomInt(60, 300);
+        m_lastDirectionUpdate                  = 0;
+        std::pair<Vec2f, float> newSpeedVector = randomVector();
+        m_guard->m_speedX                      = newSpeedVector.first.x;
+        m_guard->m_speedY                      = newSpeedVector.first.y;
+        m_guard->_angle                        = radiansToDegrees(newSpeedVector.second);
     }
 
 public:

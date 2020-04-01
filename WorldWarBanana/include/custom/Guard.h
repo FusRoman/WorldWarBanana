@@ -21,8 +21,7 @@ private:
         Guard* m_guard;
 
     public:
-        const char* name;
-        State(Guard* g, const char* name) : m_guard(g), name(name) {}
+        State(Guard* g) : m_guard(g) {}
         virtual void update()=0;
         virtual void enter()=0;
         virtual ~State(){}
@@ -42,15 +41,17 @@ private:
     float m_speedY;
     float m_vision; // distance de vision maximale du gardiens
     State* m_state; // état de l'automate du gardien
+    State* m_toBeDeleted; // ancien état de l'automate, à détruire (on ne peut pas le faire dans setState)
 
     void setState(State* state);
-    bool  canSeeHunter();
+    bool canSeeHunter();
 
 public:
     static const std::vector<const char*> modeles;
 
     Guard(Labyrinthe* l, const char* modele, uint id);
     Guard(Labyrinthe* l, int modele, uint id);
+    virtual ~Guard();
 
     virtual void hit(CMover* m, int damage);
     virtual void die(CMover* m) override;

@@ -58,7 +58,7 @@ public:
  * 
  *************************************************************************************************/
 
-Defense::Defense(Guard* g): State(g, "Defense") {}
+Defense::Defense(Guard* g): State(g) {}
 
 void Defense::update()
 {
@@ -71,8 +71,8 @@ void Defense::update()
     {
         Labyrinthe* maze = m_guard->getMaze();
         Vec2i p = maze->realToGrid(m_guard->_x, m_guard->_y);
-        int bestX = p.x;
-        int bestY = p.y;
+        int bestX = 0;
+        int bestY = 0;
         uint bestValue = maze->distanceFromTreasure(p.x, p.y);
         for (int i = -1; i <= 1; ++i)
         {
@@ -106,7 +106,7 @@ void Defense::enter() {}
  * 
  *************************************************************************************************/
 
-Attack::Attack(Guard* g): State(g, "Attack") {}
+Attack::Attack(Guard* g): State(g) {}
 
 void Attack::update()
 {
@@ -131,7 +131,7 @@ void Attack::enter() {}
  * 
  *************************************************************************************************/
 
-Pursuit::Pursuit(Guard* g): State(g, "Pursuit") {}
+Pursuit::Pursuit(Guard* g): State(g) {}
 
 void Pursuit::update() {}
 void Pursuit::enter() {}
@@ -153,7 +153,7 @@ void Patrol::updateDirection()
     m_guard->_angle                        = radiansToDegrees(newSpeedVector.second);
 }
 
-Patrol::Patrol(Guard* g): State(g, "Patrol") {}
+Patrol::Patrol(Guard* g): State(g) {}
 
 void Patrol::update()
 {
@@ -199,7 +199,7 @@ void Patrol::enter() {}
  * 
  *************************************************************************************************/
 
-Dead::Dead(Guard* g): State(g, "Dead") {}
+Dead::Dead(Guard* g): State(g) {}
 
 void Dead::update() {}
 void Dead::enter()
@@ -223,24 +223,25 @@ const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "
                                                "Blade"});
 
 Guard::Guard(Labyrinthe* l, const char* modele, uint id):
-    Character(120, 80, l, modele, id), m_speedX(1), m_speedY(1), m_vision(10 * Environnement::scale)
+    Character       (120, 80, l, modele, id), 
+    m_speedX        (1), 
+    m_speedY        (1), 
+    m_vision        (10 * Environnement::scale),
+    m_state         (new Defense(this)),
+    m_toBeDeleted   (nullptr)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
-    m_state      = new Defense(this);
     m_weapon.setCooldown(30);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id):
-    Character(120, 80, l, modeles.at(modele), id),
-    m_speedX(1),
-    m_speedY(1),
-    m_vision(10 * Environnement::scale)
+    Guard(l, modeles.at(modele), id)
+{}
+
+Guard::~Guard()
 {
-    m_damage_hit = damage_hit;
-    m_heal_sound = heal_sound;
-    m_state      = new Defense(this);
-    m_weapon.setCooldown(30);
+    delete m_state;
 }
 
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }
@@ -250,7 +251,7 @@ void Guard::die(CMover* m) { setState(new Dead(this)); }
 void Guard::setState(State* state)
 {
     //(facultatif: m_state->quit();)
-    delete m_state;
+    m_toBeDeleted = m_state;
     m_state = state;
     state->enter();
 }
@@ -265,5 +266,10 @@ bool Guard::canSeeHunter()
 void Guard::update()
 {
     Character::update();
+    if (m_toBeDeleted)
+    {
+        delete m_toBeDeleted;
+        m_toBeDeleted = nullptr;
+    }
     m_state->update();
 }

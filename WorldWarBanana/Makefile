@@ -48,8 +48,8 @@ maclabh:	$(OBJ)
 
 $(BUILDDIR)%.o: $(SRCDIR)%.cc
 $(BUILDDIR)%.o: $(SRCDIR)%.cc $(DEPENDSDIR)%.d | $(DEPENDSDIR)
-	$(MKDIR) $(@D:$(BUILDDIR)%=$(DEPENDSDIR)%)
-	$(MKDIR) $(@D)
+	@$(MKDIR) $(@D:$(BUILDDIR)%=$(DEPENDSDIR)%)
+	@$(MKDIR) $(@D)
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
 
 $(DEPENDSDIR):

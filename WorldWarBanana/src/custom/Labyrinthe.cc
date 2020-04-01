@@ -1063,6 +1063,23 @@ CellType Labyrinthe::getCellType(int x, int y)
     }
 }
 
+CellType Labyrinthe::getCellType(CMover* mover, int x, int y)
+{
+    auto r = getCellType(x, y);
+    if (mover)
+    {
+        switch (r)
+        {
+        case CMOVER:
+            r = ((uint) m_data[y][x] == mover->id() + CMOVER)? _EMPTY : CMOVER;
+            
+        default:
+            break;
+        }
+    }
+    return r;
+}
+
 Hunter* Labyrinthe::getHunter()
 {
     return static_cast<Hunter*>(_guards[0]);

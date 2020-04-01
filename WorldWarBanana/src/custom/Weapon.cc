@@ -166,7 +166,6 @@ void Weapon::fire(int angle)
             for (uint i = 0; i < m_nbballs; ++i)
             {
                 FireBallDX* dx = nextFireBall();
-                //Vec2f p = unitVector(degreesToRadians(a));
                 if (dx)
                 {
                     dx->setWeapon(this);
@@ -235,4 +234,11 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
         break;
     }
     return false;
+}
+
+bool Weapon::canFire() const
+{
+    uint tick     = CMover::tick();
+    int  ellapsed = tick - m_lastFired;
+    return ellapsed >= m_cooldown;
 }

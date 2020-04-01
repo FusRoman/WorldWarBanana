@@ -172,6 +172,12 @@ public:
     CellType getCellType(int x, int y);
 
     /**
+     * @brief Similaire à getCellType.
+     * Renvoie juste _EMPTY si c'est mover qui se trouve sur la case désignée.
+     */
+    CellType getCellType(CMover* mover, int x, int y);
+
+    /**
      * @brief Renvoie le chasseur.
      */
     Hunter* getHunter();

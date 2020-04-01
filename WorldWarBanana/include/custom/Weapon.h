@@ -122,4 +122,9 @@ public:
      * @brief Met à jour une boule de feu.
      */
     bool process_fireball(FireBall* fb, double dx, double dy);
+
+    /**
+     * @brief Renvoie true si l'arme est prête à renvoyer une boule de feu.
+     */
+    bool canFire() const;
 };

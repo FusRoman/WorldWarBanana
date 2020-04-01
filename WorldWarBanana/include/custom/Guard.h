@@ -6,6 +6,7 @@
 #include "Labyrinthe.h"
 #include "Sound.h"
 #include "utils.h"
+#include "Hunter.h"
 
 class Labyrinthe;
 
@@ -19,6 +20,7 @@ private:
     static Sound* heal_sound;
     float m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
     float m_speedY;
+    float m_vision; // distance de vision maximale du gardiens
     class State {
 
         protected:
@@ -28,6 +30,7 @@ private:
             State(Guard* g) : m_guard(g) {}
             virtual void update()=0;
             virtual void enter()=0;
+            virtual ~State(){}
 
     };
     State* m_state; // état de l'automate du gardien
@@ -39,6 +42,7 @@ private:
     friend class Damage;
 
     void setState(State* state);
+    bool  canSeeHunter();
 
 public:
     static const std::vector<const char*> modeles;

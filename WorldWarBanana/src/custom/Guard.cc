@@ -31,10 +31,12 @@ Guard::Guard(Labyrinthe* l, int modele, uint id): Character(120, 80, l, modeles.
 void Guard::hit(CMover* m, int damage)
 {
     Character::hit(m, damage);
+    message("gardiens : %d, pv : %d",m_id, m_pv);
     if (damage > 0)
     {
-        tomber();
+        //tomber();
     }
+    
 }
 
 void Guard::die(CMover* m) 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <list>
 #include <math.h>
 #include <iostream>
@@ -30,6 +31,8 @@ public:
 typedef Vec2<int>   Vec2i;
 typedef Vec2<float> Vec2f;
 
+const float pi = 3.14159265359;
+
 /**
  * @brief Retourne un entier dans [lower, upper].
  */
@@ -43,7 +46,12 @@ float randomFloat(float lower, int upper);
 /**
  * @brief Retourne un vecteur unitaire aléatoire.
  */
-Vec2f randomVector();
+std::pair<Vec2f, float> randomVector();
+
+/**
+ * @brief Convertit des radians en degrés.
+ */
+int radiansToDegrees(float radians);
 
 template <class T> T max(T a, T b) { return (a > b) ? a : b; }
 
@@ -99,5 +107,7 @@ bool isUpperAlpha(char c);
 inline void play(Sound* s)
 {
     if (s)
+    {
         s->play();
+    }
 }

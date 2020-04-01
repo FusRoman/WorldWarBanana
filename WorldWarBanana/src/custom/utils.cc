@@ -21,12 +21,22 @@ float randomFloat(float lower, float upper)
 std::pair<Vec2f, float> randomVector()
 {
     float angle = randomFloat(0.f, 2.f * pi);
-    return std::pair<Vec2f, float>(Vec2f(cos(angle), sin(angle)), angle);
+    return std::pair<Vec2f, float>(unitVector(angle), angle);
 }
 
 int radiansToDegrees(float radians)
 {
     return ((radians * 180.) / pi) - 90;
+}
+
+float degreesToRadians(int degrees)
+{
+    return ((degrees + 90) * pi) / 180;
+}
+
+Vec2f unitVector(float radians)
+{
+    return Vec2f(cos(radians), sin(radians));
 }
 
 bool isSpace(char c)

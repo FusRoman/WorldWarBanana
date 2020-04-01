@@ -95,6 +95,16 @@ const float pi = 3.14159265359;
  */
 int radiansToDegrees(float radians);
 
+/**
+ * @brief Convertit des degrés en radians.
+ */
+float degreesToRadians(int degrees);
+
+/**
+ * @brief Renvoie le vecteur unitaire dans l'angle donné.
+ */
+Vec2f unitVector(float radians);
+
 
 /**************************************************************************************************
  * 

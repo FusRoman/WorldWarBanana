@@ -18,10 +18,15 @@ float randomFloat(float lower, float upper)
     return urd(rng, decltype(urd)::param_type{lower, upper});
 }
 
-Vec2f randomVector()
+std::pair<Vec2f, float> randomVector()
 {
-    float angle = randomFloat(0.f, 2.f * 3.14159265359f);
-    return Vec2f(cos(angle), sin(angle));
+    float angle = randomFloat(0.f, 2.f * pi);
+    return std::pair<Vec2f, float>(Vec2f(cos(angle), sin(angle)), angle);
+}
+
+int radiansToDegrees(float radians)
+{
+    return (radians * 180.) / pi;
 }
 
 bool isSpace(char c)

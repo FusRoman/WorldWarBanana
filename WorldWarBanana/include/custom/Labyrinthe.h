@@ -11,18 +11,6 @@
 
 #define NB_POSTERS 26
 
-template <class T> class Vec2
-{
-public:
-    const T x;
-    const T y;
-
-    Vec2(T x, T y): x(x), y(y) {}
-};
-
-typedef Vec2<int>   Vec2i;
-typedef Vec2<float> Vec2f;
-
 /**
  * @brief Un enum pour communiquer avec les autres classes,
  * représentant les données présentes sur chaque case.

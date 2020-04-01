@@ -45,8 +45,8 @@ Weapon::Weapon(CMover* owner):
 {
     /*setNbBalls(11);
     setAngle(5);*/
-    setNbBalls(3);
-    setAngle(15);
+    /*setNbBalls(3);
+    setAngle(15);*/
 }
 
 Weapon::Weapon(CMover* owner, const std::string& name, int damage, uint cooldown, float reach,

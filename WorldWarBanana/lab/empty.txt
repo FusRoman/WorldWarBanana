@@ -1,8 +1,8 @@
                       +--+----------------------------+
-                      |   GGGGGGGGGGGGGGGGGGGGGGGGGGGG|
-                      |T++GGGGGGGGGGGGGGGGGGGGGGGGGGGG|
-                      +-+|GGGGGGGGGGGGGGGGGGGGGGGGGGGG|
-                         |GGGGGGGGGGGGGGGGGGGGGGGGGGGG|
+                      |                              G|
+                      |T++                            |
+                      +-+|                            |
+                         | +--------------------------+
                          |                            |
                          |                            |
                          |                            |

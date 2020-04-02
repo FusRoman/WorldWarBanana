@@ -1,6 +1,6 @@
 #pragma once
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 template <class T> class Heap
@@ -18,8 +18,8 @@ private:
     void heapify_down(int i)
     {
         // get left and right child of node at index i
-        T left  = left_child(i);
-        T right = right_child(i);
+        uint left  = left_child(i);
+        uint right = right_child(i);
 
         int smallest = i;
 
@@ -35,7 +35,7 @@ private:
         // call heapify-down on the child
         if (smallest != i)
         {
-            swap(m_heap[i], m_heap[smallest]);
+            swap(&m_heap[i], &m_heap[smallest]);
             heapify_down(smallest);
         }
     }
@@ -47,18 +47,25 @@ private:
         if (i && m_heap[i] < m_heap[parent(i)])
         {
             // swap the two if heap property is violated
-            swap(m_heap[i], m_heap[parent(i)]);
+            swap(&m_heap[i], &m_heap[parent(i)]);
 
             // call Heapify-up on the parent
             heapify_up(parent(i));
         }
     }
 
+    void swap(T* a, T* b)
+    {
+        T* tmp = a;
+        a      = b;
+        b      = tmp;
+    }
+
 public:
     inline unsigned int size() { return m_heap.size(); }
     inline bool         empty() { return size() == 0; }
 
-    void push(T key)
+    void push(T& key)
     {
         // insert the new element to the end of the vector
         m_heap.push_back(key);
@@ -74,11 +81,13 @@ public:
             // if heap has no elements, throw an exception
             if (size() == 0)
                 throw std::out_of_range("Vector<X>::at() : "
-                                   "index is out of range(Heap underflow)");
+                                        "index is out of range(Heap underflow)");
 
             // replace the root of the heap with the last element
             // of the vector
+
             m_heap[0] = m_heap.back();
+
             m_heap.pop_back();
 
             // call heapify-down on root node
@@ -90,31 +99,26 @@ public:
             std::cout << "\n" << oor.what();
         }
     }
-    T top()
+    T& top()
     {
-        try
-        {
-            // if heap has no elements, throw an exception
-            if (size() == 0)
-                throw std::out_of_range("Vector<X>::at() : "
-                                   "index is out of range(Heap underflow)");
+        // if heap has no elements, throw an exception
+        if (size() == 0)
+            throw std::out_of_range("Vector<X>::at() : "
+                                    "index is out of range(Heap underflow)");
 
-            // else return the top (first) element
-            return m_heap.at(0); // or return A[0];
-        }
-        // catch and print the exception
-        catch (const std::out_of_range& oor)
-        {
-            std::cout << "\n" << oor.what();
-        }
+        // else return the top (first) element
+        return m_heap.at(0); // or return A[0];
     }
 
-    bool contains(T x){
-        for(T i : m_heap){
-            if(i == x){
-                return true;
+    T* contains(T& x)
+    {
+        for (T& i: m_heap)
+        {
+            if (i == x)
+            {
+                return &i;
             }
         }
-        return false;
+        return nullptr;
     }
 };

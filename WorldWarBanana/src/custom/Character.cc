@@ -2,8 +2,8 @@
 
 #include "macros.h"
 
-Character::Character(int x, int y, Labyrinthe* l, const char* modele, uint id):
-    CMover(x, y, l, modele, id), m_pv(100), m_weapon(this)
+Character::Character(Labyrinthe* l, const char* modele, uint id, int maxpvs):
+    CMover(0, 0, l, modele, id), m_pv(maxpvs), m_maxpvs(maxpvs), m_weapon(this)
 {
 }
 
@@ -27,13 +27,13 @@ void Character::hit(CMover* m, int damage)
     }
     else
     {
-        if (m_pv > 0)
+        if (m_pv < m_maxpvs)
         {
             play(m_heal_sound);
         }
-        if (m_pv - damage >= 100)
+        if (m_pv - damage >= m_maxpvs)
         {
-            m_pv = 100;
+            m_pv = m_maxpvs;
         }
         else
         {

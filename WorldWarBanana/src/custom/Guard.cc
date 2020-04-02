@@ -67,7 +67,8 @@ std::forward_list<Node> findShortestPath(CMover& m, Node end)
         std::forward_list<Node> neighbor;
         computeNeighbor(m, u, end, neighbor);
         for(Node v: neighbor){
-            if(!(  ))
+            std::set<Node>::iterator it = closedList.find(v);
+            if(  it == )
         }
     }
 }

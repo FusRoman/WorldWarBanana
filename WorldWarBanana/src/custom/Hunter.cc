@@ -12,7 +12,7 @@ Sound* Hunter::heal_sound  = new Sound("sons/heal_sound.wav");
  *	Constructeur.
  */
 
-Hunter::Hunter(Labyrinthe* l, uint id): Character(100, 80, l, 0, id)
+Hunter::Hunter(Labyrinthe* l, uint id): Character(l, 0, id, 100)
 {
     m_damage_hit = _hunter_hit;
     m_heal_sound = heal_sound;

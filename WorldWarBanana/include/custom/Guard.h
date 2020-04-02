@@ -55,8 +55,8 @@ private:
 public:
     static const std::vector<const char*> modeles;
 
-    Guard(Labyrinthe* l, const char* modele, uint id);
-    Guard(Labyrinthe* l, int modele, uint id);
+    Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs);
+    Guard(Labyrinthe* l, int modele, uint id, int maxpvs);
     virtual ~Guard();
 
     virtual void hit(CMover* m, int damage);

@@ -301,8 +301,8 @@ const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "
                                                "Lezard", "Samourai", "Serpent", "Squelette",
                                                "Blade"});
 
-Guard::Guard(Labyrinthe* l, const char* modele, uint id):
-    Character       (120, 80, l, modele, id), 
+Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
+    Character       (l, modele, id, maxpvs), 
     m_speedX        (1), 
     m_speedY        (1), 
     m_vision        (10 * Environnement::scale),
@@ -313,11 +313,12 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id):
     m_heal_sound = heal_sound;
     m_weapon.setNbBalls(1);
     m_weapon.setCooldown(30);
-    m_weapon.setOnFire(fire_sound);
+    m_weapon.setOnFire(nullptr);
+    m_weapon.setOnHit(nullptr);
 }
 
-Guard::Guard(Labyrinthe* l, int modele, uint id):
-    Guard(l, modeles.at(modele), id)
+Guard::Guard(Labyrinthe* l, int modele, uint id, int maxpvs):
+    Guard(l, modeles.at(modele), id, maxpvs)
 {}
 
 Guard::~Guard()

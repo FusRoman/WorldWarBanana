@@ -43,10 +43,21 @@ void Weapon::assertNeverFired(const std::string& msg)
 Weapon::Weapon(CMover* owner):
     Weapon(owner, "Banana Blaster", 10, 0, infiniteReach, onFire, onHit, onTrigger)
 {
-    setNbBalls(11);
-    setAngle(5);
+    /*setNbBalls(11);
+    setAngle(5);*/
     /*setNbBalls(3);
     setAngle(15);*/
+    if (owner->id() == 0)
+    {
+        setDamage(100);
+        setNbBalls(11);
+        setAngle(5);
+    }
+    else
+    {
+        setDamage(1);
+    }
+    
 }
 
 Weapon::Weapon(CMover* owner, const std::string& name, int damage, uint cooldown, float reach,

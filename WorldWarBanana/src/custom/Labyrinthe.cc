@@ -577,7 +577,7 @@ uint Labyrinthe::allocate()
     for (uint g = i; g < nbguards; ++g)
     {
         int rd     = randomInt(0, Guard::modeles.size() - 1);
-        _guards[g] = new Guard(this, rd, g);
+        _guards[g] = new Guard(this, rd, g, 150);
     }
 
     _nguards = nbguards;

@@ -7,6 +7,7 @@ class Character: public CMover
 {
 protected:
     int    m_pv;         // Point de vie de chaque personnage compris entre 0 et 100
+    int    m_maxpvs;      // Points de vie maximum
     Sound* m_damage_hit; // son joué lorsqu'un personnage prend des dégats
 
     /*
@@ -21,7 +22,7 @@ public:
     /**
      * @brief Constructeur
      */
-    Character(int x, int y, Labyrinthe* l, const char* modele, uint id);
+    Character(Labyrinthe* l, const char* modele, uint id, int maxpvs);
 
     /**
      * @brief Retourne le nombre de PVs restants de l'objet.

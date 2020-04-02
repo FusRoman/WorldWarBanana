@@ -14,6 +14,6 @@ private:
 
 public:
     Hunter(Labyrinthe* l, uint id);
-    void         right_click(bool shift, bool control);
+    virtual void update() override;
     virtual void die(CMover* m) override;
 };

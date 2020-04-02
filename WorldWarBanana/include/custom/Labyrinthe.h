@@ -4,8 +4,9 @@
 #include <iostream>
 
 #include "Environnement.h"
-#include "Hunter.h"
 #include "FireBallDX.h"
+#include "Guard.h"
+#include "Hunter.h"
 #include "macros.h"
 #include "utils.h"
 
@@ -186,6 +187,16 @@ public:
      * @brief Renvoie le CMover en (x, y), nullptr si aucun.
      */
     CMover* getMover(int x, int y);
+
+    /**
+     * @brief Renvoie le nombre de gardes dans ce labyrinthe.
+     */
+    uint getNbGuards() const;
+
+    /**
+     * @brief Renvoie le agrde à l'index donné, en supposant que le premier garde est à 0.
+     */
+    Guard* getGuard(uint index);
 
     /**
      * @brief Renvoie true si mover peut aller sur la case indiquée.

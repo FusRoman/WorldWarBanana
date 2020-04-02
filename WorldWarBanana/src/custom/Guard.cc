@@ -1,12 +1,12 @@
 #include "Guard.h"
 
-#include "macros.h"
+#include "Labyrinthe.h"
 
 class Walking: public Guard::State
 {
 private:
-    int  m_duration;
-    int  m_lastDirectionUpdate;
+    int m_duration;
+    int m_lastDirectionUpdate;
 
     void updateDirection();
 
@@ -24,7 +24,7 @@ private:
 public:
     Defense(Guard* g);
     virtual std::pair<Vec2f, float> newDirection() override;
-    virtual void enter() override;
+    virtual void                    enter() override;
 };
 
 class Attack: public Guard::State
@@ -50,7 +50,7 @@ class Patrol: public Walking
 public:
     Patrol(Guard* g);
     virtual std::pair<Vec2f, float> newDirection() override;
-    virtual void enter() override;
+    virtual void                    enter() override;
 };
 
 class Dead: public Guard::State
@@ -61,20 +61,19 @@ public:
     virtual void enter() override;
 };
 
-
 /**************************************************************************************************
- * 
+ *
  * Walking
- * 
+ *
  *************************************************************************************************/
 
 Walking::Walking(Guard* g): State(g) {}
 
 void Walking::updateDirection()
 {
-    m_duration = randomInt(60, 300);
+    m_duration            = randomInt(60, 300);
     m_lastDirectionUpdate = 0;
-    auto _new = newDirection();
+    auto _new             = newDirection();
     m_guard->face(_new.first, _new.second);
 }
 
@@ -107,9 +106,9 @@ void Walking::update()
 }
 
 /**************************************************************************************************
- * 
+ *
  * Defense
- * 
+ *
  *************************************************************************************************/
 
 Defense::Defense(Guard* g): Walking(g) {}
@@ -118,11 +117,11 @@ std::pair<Vec2f, float> Defense::newDirection()
 {
     if (randomFloat(0., 1.) < 0.5)
     {
-        Labyrinthe* maze = m_guard->getMaze();
-        Vec2i p = maze->realToGrid(m_guard->_x, m_guard->_y);
-        int bestX = 0;
-        int bestY = 0;
-        uint bestValue = maze->distanceFromTreasure(p.x, p.y);
+        Labyrinthe* maze      = m_guard->getMaze();
+        Vec2i       p         = maze->realToGrid(m_guard->_x, m_guard->_y);
+        int         bestX     = 0;
+        int         bestY     = 0;
+        uint        bestValue = maze->distanceFromTreasure(p.x, p.y);
         for (int i = -1; i <= 1; ++i)
         {
             for (int j = -1; j <= 1; ++j)
@@ -130,9 +129,9 @@ std::pair<Vec2f, float> Defense::newDirection()
                 uint tmp = maze->distanceFromTreasure(p.x + i, p.y + j);
                 if (tmp < bestValue)
                 {
-                    bestValue   = tmp;
-                    bestX       = i;
-                    bestY       = j;
+                    bestValue = tmp;
+                    bestX     = i;
+                    bestY     = j;
                 }
             }
         }
@@ -143,16 +142,14 @@ std::pair<Vec2f, float> Defense::newDirection()
     {
         return randomVector();
     }
-    
 }
 
 void Defense::enter() {}
 
-
 /**************************************************************************************************
- * 
+ *
  * Attack
- * 
+ *
  *************************************************************************************************/
 
 Attack::Attack(Guard* g): State(g) {}
@@ -173,11 +170,10 @@ void Attack::update()
 }
 void Attack::enter() {}
 
-
 /**************************************************************************************************
- * 
+ *
  * Pursuit
- * 
+ *
  *************************************************************************************************/
 
 Pursuit::Pursuit(Guard* g): State(g) {}
@@ -185,27 +181,22 @@ Pursuit::Pursuit(Guard* g): State(g) {}
 void Pursuit::update() {}
 void Pursuit::enter() {}
 
-
 /**************************************************************************************************
- * 
+ *
  * Patrol
- * 
+ *
  *************************************************************************************************/
 
 Patrol::Patrol(Guard* g): Walking(g) {}
 
-std::pair<Vec2f, float> Patrol::newDirection()
-{
-    return randomVector();
-}
+std::pair<Vec2f, float> Patrol::newDirection() { return randomVector(); }
 
 void Patrol::enter() {}
 
-
 /**************************************************************************************************
- * 
+ *
  * Dead
- * 
+ *
  *************************************************************************************************/
 
 Dead::Dead(Guard* g): State(g) {}
@@ -217,11 +208,10 @@ void Dead::enter()
     m_guard->getMaze()->free(m_guard);
 }
 
-
 /**************************************************************************************************
- * 
+ *
  * Guard
- * 
+ *
  *************************************************************************************************/
 
 // Fonctions auxiliaires pour l'implémentation de DDA
@@ -236,7 +226,7 @@ namespace _Guard_private_
         // Si rayDirection vaut 0, les résultats renvoyés seront +inf
         // Ce qui se comporte bien avec l'algorithme DDA par la suite
         // Donc pas besoin de protection
-        float tmp = floor(rayOrigin / Environnement::scale);
+        float tmp   = floor(rayOrigin / Environnement::scale);
         float delta = Environnement::scale / rayDirection;
         if (rayDirection < 0.)
         {
@@ -246,11 +236,8 @@ namespace _Guard_private_
         {
             tmp += 1;
         }
-        
-        return Vec2f(
-            (tmp * Environnement::scale - rayOrigin) / rayDirection,
-            delta
-        );
+
+        return Vec2f((tmp * Environnement::scale - rayOrigin) / rayDirection, delta);
     }
 
     // Renvoie true si origin peut voir la destination
@@ -261,12 +248,12 @@ namespace _Guard_private_
     {
         // Initialisation
         Labyrinthe* laby = mover->getMaze();
-        float t = 0.;
-        Vec2i cell(Labyrinthe::realToGrid(origin));
-        Vec2f initX = initT(origin.x, direction.x);
-        Vec2f initY = initT(origin.y, direction.y);
-        Vec2f tv(initX.x, initY.x);
-        Vec2f deltaT(initX.y, initY.y);
+        float       t    = 0.;
+        Vec2i       cell(Labyrinthe::realToGrid(origin));
+        Vec2f       initX = initT(origin.x, direction.x);
+        Vec2f       initY = initT(origin.y, direction.y);
+        Vec2f       tv(initX.x, initY.x);
+        Vec2f       deltaT(initX.y, initY.y);
 
         while (true)
         {
@@ -275,15 +262,15 @@ namespace _Guard_private_
             {
                 t = tv.x;
                 tv.x += deltaT.x;
-                (direction.x < 0.)? --cell.x : ++cell.x;
+                (direction.x < 0.) ? --cell.x : ++cell.x;
             }
             else
             {
                 t = tv.y;
                 tv.y += deltaT.y;
-                (direction.y < 0.)? --cell.y : ++cell.y;
+                (direction.y < 0.) ? --cell.y : ++cell.y;
             }
-            
+
             // Conditions de sortie
             if (t >= tmax)
             {
@@ -312,12 +299,12 @@ const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "
                                                "Blade"});
 
 Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
-    Character       (l, modele, id, maxpvs), 
-    m_speedX        (1), 
-    m_speedY        (1), 
-    m_vision        (10 * Environnement::scale),
-    m_state         (new Defense(this)),
-    m_toBeDeleted   (nullptr)
+    Character(l, modele, id, maxpvs),
+    m_speedX(1),
+    m_speedY(1),
+    m_vision(10 * Environnement::scale),
+    m_state(new Defense(this)),
+    m_toBeDeleted(nullptr)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
@@ -328,12 +315,10 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
 
 Guard::Guard(Labyrinthe* l, int modele, uint id, int maxpvs):
     Guard(l, modeles.at(modele), id, maxpvs)
-{}
-
-Guard::~Guard()
 {
-    delete m_state;
 }
+
+Guard::~Guard() { delete m_state; }
 
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }
 
@@ -343,17 +328,17 @@ void Guard::setState(State* state)
 {
     //(facultatif: m_state->quit();)
     m_toBeDeleted = m_state;
-    m_state = state;
+    m_state       = state;
     state->enter();
 }
 
 bool Guard::canSeeHunter(bool _walk)
 {
     Hunter* hunter = getMaze()->getHunter();
-    Vec2f h(hunter->_x, hunter->_y);
-    Vec2f g(_x, _y);
-    Vec2f gh(h - g);
-    float norm = gh.norm();
+    Vec2f   h(hunter->_x, hunter->_y);
+    Vec2f   g(_x, _y);
+    Vec2f   gh(h - g);
+    float   norm = gh.norm();
 
     bool see = norm < m_vision;
     if (see)
@@ -362,7 +347,7 @@ bool Guard::canSeeHunter(bool _walk)
         // Et leur champ de vision est limité à 180° sur les côtés
         // (d'où le produit scalaire)
         Vec2f facing(m_speedX, m_speedY);
-        see = (gh.dot(facing) > 0)? dda(this, g, gh / norm, norm) : false;
+        see = (gh.dot(facing) > 0) ? dda(this, g, gh / norm, norm) : false;
     }
 
     if (_walk && see)
@@ -372,10 +357,7 @@ bool Guard::canSeeHunter(bool _walk)
     return see;
 }
 
-void Guard::face(const Vec2f& d)
-{
-    face(d, d.angle());
-}
+void Guard::face(const Vec2f& d) { face(d, d.angle()); }
 
 void Guard::face(const Vec2f& d, float radians)
 {
@@ -398,7 +380,6 @@ void Guard::walk(const Vec2f& d, float radians)
 
 void Guard::update()
 {
-    Character::update();
     if (m_toBeDeleted)
     {
         delete m_toBeDeleted;

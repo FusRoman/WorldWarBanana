@@ -16,44 +16,79 @@ public:
     Vec2(const Vec2<T>& v): x(v.x), y(v.y) {}
 
     /**
+     * @brief Affectation.
+     */
+    const Vec2<T>& operator=(const Vec2<T>& v)
+    {
+        x = v.x;
+        y = v.y;
+        return *this;
+    }
+
+    /**
+     * @brief Addition in-place.
+     */
+    const Vec2<T>& operator+=(const Vec2<T>& v)
+    {
+        x += v.x;
+        y += v.y;
+        return *this;
+    }
+
+    /**
+     * @brief Soustraction in-place.
+     */
+    const Vec2<T>& operator-=(const Vec2<T>& v)
+    {
+        x -= v.x;
+        y -= v.y;
+        return *this;
+    }
+
+    /**
+     * @brief Multiplication in-place.
+     */
+    const Vec2<T>& operator*=(T scalar)
+    {
+        x *= scalar;
+        y *= scalar;
+        return *this;
+    }
+
+    /**
+     * @brief Division in-place.
+     */
+    const Vec2<T>& operator/=(T scalar)
+    {
+        x /= scalar;
+        y /= scalar;
+        return *this;
+    }
+
+    /**
      * @brief Egalité entre deux vecteurs.
      */
-    Vec2<T> operator==(const Vec2<T>& v) const
-    {
-        return x == v.x && y == v.y;
-    }
+    Vec2<T> operator==(const Vec2<T>& v) const { return x == v.x && y == v.y; }
 
     /**
      * @brief Inégalité entre deux vecteurs.
      */
-    Vec2<T> operator!=(const Vec2<T>& v) const
-    {
-        return !(*this == v);
-    }
+    Vec2<T> operator!=(const Vec2<T>& v) const { return !(*this == v); }
 
     /**
      * @brief Opposé du vecteur.
      */
-    Vec2<T> operator-() const
-    {
-        return Vec2<T>(-x, -y);
-    }
+    Vec2<T> operator-() const { return Vec2<T>(-x, -y); }
 
     /**
      * @brief Addition entre deux vecteurs.
      */
-    Vec2<T> operator+(const Vec2<T>& v) const
-    {
-        return Vec2<T>(x + v.x, y + v.y);
-    }
+    Vec2<T> operator+(const Vec2<T>& v) const { return Vec2<T>(x + v.x, y + v.y); }
 
     /**
      * @brief Soustraction entre deux vecteurs.
      */
-    Vec2<T> operator-(const Vec2<T>& v) const
-    {
-        return Vec2<T>(x - v.x, y - v.y);
-    }
+    Vec2<T> operator-(const Vec2<T>& v) const { return Vec2<T>(x - v.x, y - v.y); }
 
     /**
      * @brief Multiplication avec un scalaire.
@@ -66,10 +101,7 @@ public:
     /**
      * @brief Overload de operator *.
      */
-    friend Vec2<T> operator*(T scalar, const Vec2<T>& v)
-    {
-        return v * scalar;
-    }
+    friend Vec2<T> operator*(T scalar, const Vec2<T>& v) { return v * scalar; }
 
     /**
      * @brief Division par un scalaire.
@@ -90,51 +122,33 @@ public:
     /**
      * @brief Renvoie la norme du vecteur.
      */
-    float norm() const
-    {
-        return sqrt(x * x + y * y);
-    }
+    float norm() const { return sqrt(x * x + y * y); }
 
     /**
      * @brief Produit scalaire.
      */
-    T dot(const Vec2<T>& v) const
-    {
-        return x * v.x + y * v.y;
-    }
+    T dot(const Vec2<T>& v) const { return x * v.x + y * v.y; }
 
     /**
      * @brief Déterminant.
      */
-    T det(const Vec2<T>& v) const
-    {
-        return x * v.y - y * v.x;
-    }
+    T det(const Vec2<T>& v) const { return x * v.y - y * v.x; }
 
     /**
      * @brief Retourne un vecteur unitaire de même direction.
      * Cette fonction ne fonctionne correctement que pour les types flottants.
      */
-    Vec2<T> normalize() const
-    {
-        return *this / norm();
-    }
+    Vec2<T> normalize() const { return *this / norm(); }
 
     /**
      * @brief Renvoie l'angle entre ce vecteur et (0, 1).
      */
-    float angle() const
-    {
-        return atan2(y, x);
-    }
+    float angle() const { return atan2(y, x); }
 
     /**
      * @brief Renvoie l'angle en radians entre deux vecteurs.
      */
-    float angle(const Vec2<T>& v) const
-    {
-        return atan2(dot(v), det(v));
-    }
+    float angle(const Vec2<T>& v) const { return atan2(dot(v), det(v)); }
 };
 
 typedef Vec2<int>   Vec2i;

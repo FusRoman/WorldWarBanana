@@ -7,9 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "FireBallDX.h"
-#include "Guard.h"
-#include "Hunter.h"
 #include "Weapon.h"
 
 Environnement* Environnement::init(char* filename) { return new Labyrinthe(filename); }
@@ -1071,9 +1068,9 @@ CellType Labyrinthe::getCellType(CMover* mover, int x, int y)
         switch (r)
         {
         case CMOVER:
-            r = ((uint) m_data[y][x] == mover->id() + CMOVER)? _EMPTY : CMOVER;
+            r = ((uint) m_data[y][x] == mover->id() + CMOVER) ? _EMPTY : CMOVER;
             break;
-            
+
         default:
             break;
         }
@@ -1081,15 +1078,19 @@ CellType Labyrinthe::getCellType(CMover* mover, int x, int y)
     return r;
 }
 
-Hunter* Labyrinthe::getHunter()
-{
-    return static_cast<Hunter*>(_guards[0]);
-}
+Hunter* Labyrinthe::getHunter() { return static_cast<Hunter*>(_guards[0]); }
 
 CMover* Labyrinthe::getMover(int x, int y)
 {
     char d = m_data[y][x];
     return (d >= CMOVER) ? static_cast<CMover*>(_guards[d - CMOVER]) : nullptr;
+}
+
+uint Labyrinthe::getNbGuards() const { return _nguards - Weapon::maxNbBalls - 1; }
+
+Guard* Labyrinthe::getGuard(uint index)
+{
+    return static_cast<Guard*>(_guards[index + getNbGuards()]);
 }
 
 uint Labyrinthe::distanceFromTreasure(int x, int y) const

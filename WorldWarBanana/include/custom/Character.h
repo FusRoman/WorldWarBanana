@@ -7,7 +7,7 @@ class Character: public CMover
 {
 protected:
     int    m_pv;         // Point de vie de chaque personnage compris entre 0 et 100
-    int    m_maxpvs;      // Points de vie maximum
+    int    m_maxpvs;     // Points de vie maximum
     Sound* m_damage_hit; // son joué lorsqu'un personnage prend des dégats
 
     /*
@@ -50,21 +50,12 @@ public:
     /**
      * @brief Renvoie l'arme actuelle.
      */
-    inline const Weapon& getWeapon() const
-    {
-        return m_weapon;
-    }
+    inline const Weapon& getWeapon() const { return m_weapon; }
 
-    inline Weapon& weapon()
-    {
-        return m_weapon;
-    }
+    inline Weapon& weapon() { return m_weapon; }
 
     /**
      * @brief Change l'arme actuelle.
      */
-    inline void setWeapon(const Weapon& weapon)
-    {
-        m_weapon = weapon;
-    }
+    inline void setWeapon(const Weapon& weapon) { m_weapon = weapon; }
 };

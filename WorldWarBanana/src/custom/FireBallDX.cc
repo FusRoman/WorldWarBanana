@@ -3,6 +3,8 @@
 #include "Guard.h"
 #include "Labyrinthe.h"
 
+uint FireBallDX::m_tick = 0;
+
 FireBallDX::FireBallDX(Labyrinthe* laby, uint id):
     CMover(-Environnement::scale, -Environnement::scale, laby, Guard::modeles[0], id),
     m_weapon(nullptr)
@@ -10,6 +12,14 @@ FireBallDX::FireBallDX(Labyrinthe* laby, uint id):
 }
 
 void FireBallDX::setWeapon(Weapon* weapon) { m_weapon = weapon; }
+
+void FireBallDX::update()
+{
+    if (m_id == 1)
+    {
+        ++m_tick;
+    }
+}
 
 bool FireBallDX::block() const { return false; }
 

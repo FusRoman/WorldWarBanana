@@ -3,28 +3,25 @@
 #include <vector>
 
 #include "Character.h"
-#include "Labyrinthe.h"
+#include "Hunter.h"
 #include "Sound.h"
 #include "utils.h"
-#include "Hunter.h"
 
 class Labyrinthe;
 
-
-
-
-class Guard : public Character
+class Guard: public Character
 {
 private:
-    class State {
+    class State
+    {
     protected:
         Guard* m_guard;
 
     public:
-        State(Guard* g) : m_guard(g) {}
-        virtual void update()=0;
-        virtual void enter()=0;
-        virtual ~State(){}
+        State(Guard* g): m_guard(g) {}
+        virtual void update() = 0;
+        virtual void enter()  = 0;
+        virtual ~State() {}
     };
 
     friend class Walking;
@@ -39,11 +36,12 @@ private:
     static Sound* heal_sound;
     static Sound* fire_sound;
 
-    float m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
-    float m_speedY;
-    float m_vision; // distance de vision maximale du gardiens
-    State* m_state; // état de l'automate du gardien
-    State* m_toBeDeleted; // ancien état de l'automate, à détruire (on ne peut pas le faire dans setState)
+    float  m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
+    float  m_speedY;
+    float  m_vision;      // distance de vision maximale du gardiens
+    State* m_state;       // état de l'automate du gardien
+    State* m_toBeDeleted; // ancien état de l'automate, à détruire (on ne peut pas le faire dans
+                          // setState)
 
     void setState(State* state);
     bool canSeeHunter(bool _walk);

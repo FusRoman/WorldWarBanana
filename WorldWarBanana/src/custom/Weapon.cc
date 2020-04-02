@@ -55,7 +55,6 @@ Weapon::Weapon(CMover* owner):
     {
         setDamage(1);
     }
-    
 }
 
 Weapon::Weapon(CMover* owner, const std::string& name, int damage, uint cooldown, float reach,
@@ -163,11 +162,11 @@ void Weapon::setAngle(int angle)
 void Weapon::fire(int angle)
 {
     m_firedOnce   = true;
-    uint tick     = CMover::tick();
-    int  ellapsed = tick - m_lastFired;
+    uint now      = FireBallDX::tick();
+    int  ellapsed = now - m_lastFired;
     if (ellapsed >= m_cooldown)
     {
-        m_lastFired = tick;
+        m_lastFired = now;
         play(m_fire);
         if (m_owner->id() == 0)
         {
@@ -178,7 +177,8 @@ void Weapon::fire(int angle)
                 if (dx)
                 {
                     dx->setWeapon(this);
-                    dx->_fb->init(m_owner->_x - Environnement::scale / 2, m_owner->_y - Environnement::scale / 2, 10., angle, a);
+                    dx->_fb->init(m_owner->_x - Environnement::scale / 2,
+                                  m_owner->_y - Environnement::scale / 2, 10., angle, a);
                 }
                 else
                 {
@@ -247,7 +247,7 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
 
 bool Weapon::canFire() const
 {
-    uint tick     = CMover::tick();
-    int  ellapsed = tick - m_lastFired;
+    uint now      = FireBallDX::tick();
+    int  ellapsed = now - m_lastFired;
     return ellapsed >= m_cooldown;
 }

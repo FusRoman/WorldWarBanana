@@ -12,19 +12,11 @@ class Labyrinthe;
  */
 class CMover: public Mover
 {
-private:
-    static uint m_tick;
-
 protected:
     Labyrinthe* m_laby;
     const uint  m_id;
 
 public:
-    /**
-     * @brief Renvoie le nombre d'updates depuis le début du jeu.
-     */
-    inline static uint tick() { return m_tick; }
-
     /**
      * @brief Constructeur
      * @param x Abscisse de départ
@@ -51,12 +43,6 @@ public:
      * "Glisse" sur les obstacles si l'angle le permet.
      */
     virtual bool move(double dx, double dy) override;
-
-    /**
-     * @brief Met à jour le compteur d'updates.
-     * @warning Appeler cette fonction dans toutes les réimplémentations des classes fille !
-     */
-    virtual void update() override;
 
     /**
      * @brief Retourne vrai si l'objet est bloquant, faux sinon.

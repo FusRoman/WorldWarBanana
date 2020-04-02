@@ -186,7 +186,7 @@ void Weapon::fire(int angle)
                         << m_owner->id()
                         << ": only the player can fire more than one fire ball at the same time");
             }
-            m_owner->_fb->init(m_owner->_x, m_owner->_y, 10., angle, m_owner->_angle);
+            m_owner->_fb->init(m_owner->_x, m_owner->_y, 10., angle, -m_owner->_angle);
         }
     }
     else

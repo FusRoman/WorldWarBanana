@@ -62,7 +62,7 @@ Defense::Defense(Guard* g): State(g) {}
 
 void Defense::update()
 {
-    if (m_guard->canSeeHunter())
+    if (m_guard->canSeeHunter(false))
     {
         m_guard->setState(new Attack(m_guard));
     }
@@ -110,15 +110,12 @@ Attack::Attack(Guard* g): State(g) {}
 
 void Attack::update()
 {
-    if (!m_guard->canSeeHunter())
+    if (!m_guard->canSeeHunter(true))
     {
         m_guard->setState(new Pursuit(m_guard));
     }
     else
     {
-        Hunter* h = m_guard->getMaze()->getHunter();
-        Vec2f gh(h->_x - m_guard->_x, h->_y - m_guard->_y);
-        m_guard->face(gh.normalize());
         if (m_guard->m_weapon.canFire())
         {
             m_guard->fire(0);
@@ -158,7 +155,7 @@ Patrol::Patrol(Guard* g): State(g) {}
 
 void Patrol::update()
 {
-    if (m_guard->canSeeHunter())
+    if (m_guard->canSeeHunter(false))
     {
         m_guard->setState(new Attack(m_guard));
     }
@@ -259,11 +256,16 @@ void Guard::setState(State* state)
     state->enter();
 }
 
-bool Guard::canSeeHunter()
+bool Guard::canSeeHunter(bool _walk)
 {
     Hunter* h = getMaze()->getHunter();
     Vec2f   diffHunterGuard(h->_x - _x, h->_y - _y);
-    return diffHunterGuard.norm() < m_vision;
+    float norm = diffHunterGuard.norm();
+    if (_walk)
+    {
+        walk(diffHunterGuard / norm);
+    }
+    return norm < m_vision;
 }
 
 void Guard::face(const Vec2f& d)

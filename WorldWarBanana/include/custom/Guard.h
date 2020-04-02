@@ -45,7 +45,7 @@ private:
     State* m_toBeDeleted; // ancien état de l'automate, à détruire (on ne peut pas le faire dans setState)
 
     void setState(State* state);
-    bool canSeeHunter();
+    bool canSeeHunter(bool _walk);
     void face(const Vec2f& d);
     void face(const Vec2f& d, float radians);
     void walk(const Vec2f& d);

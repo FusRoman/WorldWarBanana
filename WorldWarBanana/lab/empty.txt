@@ -4,7 +4,7 @@
                       +-+|GGGGGGGGGGGGGGGGGGGGGGGGGGGG|
                          |GGGGGGGGGGGGGGGGGGGGGGGGGGGG|
                          |                            |
-                         |                            |
+                         |                            |                            
                          |                            |
                          |                            |
                          |                            |

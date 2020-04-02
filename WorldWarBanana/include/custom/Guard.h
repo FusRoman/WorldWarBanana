@@ -1,10 +1,10 @@
 #pragma once
 
+#include <forward_list>
+#include <set>
 #include <vector>
 
-#include "Character.h"
 #include "Hunter.h"
-#include "Sound.h"
 #include "utils.h"
 
 class Labyrinthe;
@@ -19,9 +19,9 @@ private:
 
     public:
         State(Guard* g): m_guard(g) {}
+        virtual ~State() {}
         virtual void update() = 0;
         virtual void enter()  = 0;
-        virtual ~State() {}
     };
 
     friend class Walking;

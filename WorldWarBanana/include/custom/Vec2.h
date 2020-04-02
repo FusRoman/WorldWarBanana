@@ -9,9 +9,35 @@ public:
     const T x;
     const T y;
 
+    Vec2(): x(0), y(0) {}
+
     Vec2(T x, T y): x(x), y(y) {}
 
     Vec2(const Vec2<T>& v): x(v.x), y(v.y) {}
+
+    /**
+     * @brief Egalité entre deux vecteurs.
+     */
+    Vec2<T> operator==(const Vec2<T>& v) const
+    {
+        return x == v.x && y == v.y;
+    }
+
+    /**
+     * @brief Inégalité entre deux vecteurs.
+     */
+    Vec2<T> operator!=(const Vec2<T>& v) const
+    {
+        return !(*this == v);
+    }
+
+    /**
+     * @brief Opposé du vecteur.
+     */
+    Vec2<T> operator-() const
+    {
+        return Vec2<T>(-x, -y);
+    }
 
     /**
      * @brief Addition entre deux vecteurs.

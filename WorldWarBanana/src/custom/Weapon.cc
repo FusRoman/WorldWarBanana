@@ -50,8 +50,6 @@ Weapon::Weapon(CMover* owner):
     if (owner->id() == 0)
     {
         setDamage(100);
-        setNbBalls(11);
-        setAngle(5);
     }
     else
     {

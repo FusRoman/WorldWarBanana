@@ -116,40 +116,6 @@ Defense::Defense(Guard* g): Walking(g) {}
 
 std::pair<Vec2f, float> Defense::newDirection()
 {
-    /*if (m_guard->canSeeHunter(false))
-    {
-        m_guard->setState(new Attack(m_guard));
-    }
-    float goToTreasure = randomFloat(0.0, 1.0);
-    if (goToTreasure < 0.5)
-    {
-        Labyrinthe* maze = m_guard->getMaze();
-        Vec2i p = maze->realToGrid(m_guard->_x, m_guard->_y);
-        int bestX = 0;
-        int bestY = 0;
-        uint bestValue = maze->distanceFromTreasure(p.x, p.y);
-        for (int i = -1; i <= 1; ++i)
-        {
-            for (int j = -1; j <= 1; ++j)
-            {
-                uint tmp = maze->distanceFromTreasure(p.x + i, p.y + j);
-                if (tmp < bestValue)
-                {
-                    bestValue   = tmp;
-                    bestX       = i;
-                    bestY       = j;
-                }
-            }
-        }
-        Vec2f unit(Vec2f(bestX, bestY).normalize());
-        m_guard->walk(unit);
-    }
-    else
-    {
-        auto rd = randomVector();
-        m_guard->walk(rd.first, rd.second); 
-    }*/
-
     if (randomFloat(0., 1.) < 0.5)
     {
         Labyrinthe* maze = m_guard->getMaze();
@@ -228,41 +194,6 @@ void Pursuit::enter() {}
 
 Patrol::Patrol(Guard* g): Walking(g) {}
 
-/*void Patrol::update()
-{
-    if (m_guard->canSeeHunter(false))
-    {
-        m_guard->setState(new Attack(m_guard));
-    }
-    else if (m_lastDirectionUpdate == m_maximumDeplacementLimit)
-    {
-        updateDirection();
-    }
-    Labyrinthe* laby = m_guard->getMaze();
-    Vec2f       nextPosition(m_guard->_x + m_guard->m_speedX, m_guard->_y + m_guard->m_speedY);
-    Vec2i       realPosition = laby->realToGrid(nextPosition.x, nextPosition.y);
-    switch (laby->getCellType(realPosition.x, realPosition.y))
-    {
-    case WALL:
-    case TREASURE:
-        updateDirection();
-        break;
-    case CMOVER:
-    {
-        CMover* moverOnNextPosition = laby->getMover(realPosition.x, realPosition.y);
-        if (moverOnNextPosition != nullptr && moverOnNextPosition->id() != m_guard->id())
-        {
-            updateDirection();
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    m_guard->move(m_guard->m_speedX, m_guard->m_speedY);
-    ++m_lastDirectionUpdate;
-}*/
-
 std::pair<Vec2f, float> Patrol::newDirection()
 {
     return randomVector();
@@ -293,6 +224,85 @@ void Dead::enter()
  * 
  *************************************************************************************************/
 
+// Fonctions auxiliaires pour l'implémentation de DDA
+// https://www.scratchapixel.com/lessons/advanced-rendering/introduction-acceleration-structure/grid
+// Par rapport au tutoriel donné, gridMin vaudra toujours (0, 0) ici,
+// donc rayOrigGrid défini comme rayOrigin - gridMin sera toujours égal à rayOrigin
+namespace _Guard_private_
+{
+    // x pour t, y pour deltaT
+    Vec2f initT(float rayOrigin, float rayDirection)
+    {
+        // Si rayDirection vaut 0, les résultats renvoyés seront +inf
+        // Ce qui se comporte bien avec l'algorithme DDA par la suite
+        // Donc pas besoin de protection
+        float tmp = floor(rayOrigin / Environnement::scale);
+        float delta = Environnement::scale / rayDirection;
+        if (rayDirection < 0.)
+        {
+            delta = -delta;
+        }
+        else
+        {
+            tmp += 1;
+        }
+        
+        return Vec2f(
+            (tmp * Environnement::scale - rayOrigin) / rayDirection,
+            delta
+        );
+    }
+
+    // Renvoie true si origin peut voir la destination
+    // (destination = origin + direction * tmax)
+    // direction doit être unitaire
+    // tmax doit être positif
+    bool dda(CMover* mover, Vec2f origin, Vec2f direction, float tmax)
+    {
+        // Initialisation
+        Labyrinthe* laby = mover->getMaze();
+        float t = 0.;
+        Vec2i cell(Labyrinthe::realToGrid(origin));
+        Vec2f initX = initT(origin.x, direction.x);
+        Vec2f initY = initT(origin.y, direction.y);
+        Vec2f tv(initX.x, initY.x);
+        Vec2f deltaT(initX.y, initY.y);
+
+        while (true)
+        {
+            // Mise à jour
+            if (tv.x < tv.y)
+            {
+                t = tv.x;
+                tv.x += deltaT.x;
+                (direction.x < 0.)? --cell.x : ++cell.x;
+            }
+            else
+            {
+                t = tv.y;
+                tv.y += deltaT.y;
+                (direction.y < 0.)? --cell.y : ++cell.y;
+            }
+            
+            // Conditions de sortie
+            if (t >= tmax)
+            {
+                // On a atteint la destination
+                return true;
+            }
+
+            // Out-of-bounds / obstacle sur le chemin
+            CellType c = laby->getCellType(mover, cell.x, cell.y);
+            if (c != CellType::_EMPTY && c != CellType::CMOVER)
+            {
+                // Pour l'instant, on peut voir à travers les autres CMover
+                return false;
+            }
+        }
+    }
+} // namespace _Guard_private_
+using namespace _Guard_private_;
+
 Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
 Sound* Guard::fire_sound = new Sound("sons/pk_fire.wav");
@@ -313,8 +323,7 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
     m_heal_sound = heal_sound;
     m_weapon.setNbBalls(1);
     m_weapon.setCooldown(30);
-    m_weapon.setOnFire(nullptr);
-    m_weapon.setOnHit(nullptr);
+    m_weapon.setOnFire(fire_sound);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id, int maxpvs):
@@ -340,14 +349,23 @@ void Guard::setState(State* state)
 
 bool Guard::canSeeHunter(bool _walk)
 {
-    Hunter* h = getMaze()->getHunter();
-    Vec2f   diffHunterGuard(h->_x - _x, h->_y - _y);
-    float norm = diffHunterGuard.norm();
-    if (_walk)
+    Hunter* hunter = getMaze()->getHunter();
+    Vec2f h(hunter->_x, hunter->_y);
+    Vec2f g(_x, _y);
+    Vec2f gh(h - g);
+    float norm = gh.norm();
+
+    bool see = norm < m_vision;
+    if (see)
     {
-        walk(diffHunterGuard / norm);
+        see = dda(this, g, gh / norm, norm);
     }
-    return norm < m_vision;
+
+    if (_walk && see)
+    {
+        walk(gh / norm);
+    }
+    return see;
 }
 
 void Guard::face(const Vec2f& d)

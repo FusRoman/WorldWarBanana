@@ -1072,6 +1072,7 @@ CellType Labyrinthe::getCellType(CMover* mover, int x, int y)
         {
         case CMOVER:
             r = ((uint) m_data[y][x] == mover->id() + CMOVER)? _EMPTY : CMOVER;
+            break;
             
         default:
             break;

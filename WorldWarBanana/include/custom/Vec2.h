@@ -6,8 +6,8 @@
 template <class T> class Vec2
 {
 public:
-    const T x;
-    const T y;
+    T x;
+    T y;
 
     Vec2(): x(0), y(0) {}
 

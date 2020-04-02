@@ -27,6 +27,7 @@ private:
         virtual ~State(){}
     };
 
+    friend class Walking;
     friend class Patrol;
     friend class Defense;
     friend class Dead;

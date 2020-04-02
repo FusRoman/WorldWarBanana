@@ -2,12 +2,28 @@
 
 #include "macros.h"
 
-class Defense: public Guard::State
+class Walking: public Guard::State
+{
+private:
+    int  m_duration;
+    int  m_lastDirectionUpdate;
+
+    void updateDirection();
+
+protected:
+    virtual std::pair<Vec2f, float> newDirection() = 0;
+
+public:
+    Walking(Guard* g);
+    virtual void update() override;
+};
+
+class Defense: public Walking
 {
 private:
 public:
     Defense(Guard* g);
-    virtual void update() override;
+    virtual std::pair<Vec2f, float> newDirection() override;
     virtual void enter() override;
 };
 
@@ -29,17 +45,11 @@ public:
     virtual void enter() override;
 };
 
-class Patrol: public Guard::State
+class Patrol: public Walking
 {
-
-private:
-    int  m_maximumDeplacementLimit;
-    int  m_lastDirectionUpdate;
-    void updateDirection();
-
 public:
     Patrol(Guard* g);
-    virtual void update() override;
+    virtual std::pair<Vec2f, float> newDirection() override;
     virtual void enter() override;
 };
 
@@ -54,15 +64,59 @@ public:
 
 /**************************************************************************************************
  * 
+ * Walking
+ * 
+ *************************************************************************************************/
+
+Walking::Walking(Guard* g): State(g) {}
+
+void Walking::updateDirection()
+{
+    m_duration = randomInt(60, 300);
+    m_lastDirectionUpdate = 0;
+    auto _new = newDirection();
+    m_guard->face(_new.first, _new.second);
+}
+
+void Walking::update()
+{
+    if (m_guard->canSeeHunter(false))
+    {
+        m_guard->setState(new Attack(m_guard));
+    }
+    else if (m_lastDirectionUpdate == m_duration)
+    {
+        updateDirection();
+    }
+
+    Labyrinthe* laby = m_guard->getMaze();
+    Vec2f       nextPosition(m_guard->_x + m_guard->m_speedX, m_guard->_y + m_guard->m_speedY);
+    Vec2i       gridPosition = laby->realToGrid(nextPosition.x, nextPosition.y);
+    switch (laby->getCellType(m_guard, gridPosition.x, gridPosition.y))
+    {
+    case WALL:
+    case TREASURE:
+    case CMOVER:
+        updateDirection();
+        break;
+    default:
+        break;
+    }
+    m_guard->move(m_guard->m_speedX, m_guard->m_speedY);
+    ++m_lastDirectionUpdate;
+}
+
+/**************************************************************************************************
+ * 
  * Defense
  * 
  *************************************************************************************************/
 
-Defense::Defense(Guard* g): State(g) {}
+Defense::Defense(Guard* g): Walking(g) {}
 
-void Defense::update()
+std::pair<Vec2f, float> Defense::newDirection()
 {
-    if (m_guard->canSeeHunter(false))
+    /*if (m_guard->canSeeHunter(false))
     {
         m_guard->setState(new Attack(m_guard));
     }
@@ -94,7 +148,36 @@ void Defense::update()
     {
         auto rd = randomVector();
         m_guard->walk(rd.first, rd.second); 
+    }*/
+
+    if (randomFloat(0., 1.) < 0.5)
+    {
+        Labyrinthe* maze = m_guard->getMaze();
+        Vec2i p = maze->realToGrid(m_guard->_x, m_guard->_y);
+        int bestX = 0;
+        int bestY = 0;
+        uint bestValue = maze->distanceFromTreasure(p.x, p.y);
+        for (int i = -1; i <= 1; ++i)
+        {
+            for (int j = -1; j <= 1; ++j)
+            {
+                uint tmp = maze->distanceFromTreasure(p.x + i, p.y + j);
+                if (tmp < bestValue)
+                {
+                    bestValue   = tmp;
+                    bestX       = i;
+                    bestY       = j;
+                }
+            }
+        }
+        Vec2f unit(Vec2f(bestX, bestY).normalize());
+        return std::pair<Vec2f, float>(unit, unit.angle());
     }
+    else
+    {
+        return randomVector();
+    }
+    
 }
 
 void Defense::enter() {}
@@ -143,17 +226,9 @@ void Pursuit::enter() {}
  * 
  *************************************************************************************************/
 
-void Patrol::updateDirection()
-{
-    m_maximumDeplacementLimit              = randomInt(60, 300);
-    m_lastDirectionUpdate                  = 0;
-    std::pair<Vec2f, float> newSpeedVector = randomVector();
-    m_guard->face(newSpeedVector.first, newSpeedVector.second);
-}
+Patrol::Patrol(Guard* g): Walking(g) {}
 
-Patrol::Patrol(Guard* g): State(g) {}
-
-void Patrol::update()
+/*void Patrol::update()
 {
     if (m_guard->canSeeHunter(false))
     {
@@ -186,6 +261,11 @@ void Patrol::update()
     }
     m_guard->move(m_guard->m_speedX, m_guard->m_speedY);
     ++m_lastDirectionUpdate;
+}*/
+
+std::pair<Vec2f, float> Patrol::newDirection()
+{
+    return randomVector();
 }
 
 void Patrol::enter() {}
@@ -226,11 +306,12 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id):
     m_speedX        (1), 
     m_speedY        (1), 
     m_vision        (10 * Environnement::scale),
-    m_state         (new Patrol(this)),
+    m_state         (new Defense(this)),
     m_toBeDeleted   (nullptr)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
+    m_weapon.setNbBalls(1);
     m_weapon.setCooldown(30);
     m_weapon.setOnFire(fire_sound);
 }

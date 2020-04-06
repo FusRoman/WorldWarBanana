@@ -12,21 +12,23 @@
 namespace _Guard_private_
 {
 
-    const static int A_STAR_LIMIT = 20;
+    const static int A_STAR_LIMIT = 50;
 
     class Node
     {
     public:
-        int   positionX;
-        int   positionY;
-        int   dx;
-        int   dy;
-        int   cost_g;
-        int   cost_h;
-        int   cost_f;
-        Node* parent;
+        int positionX;
+        int positionY;
+        int dx;
+        int dy;
+        int cost_g;
+        int cost_h;
+        int cost_f;
+        int parent;
+        int idNode;
 
-        Node(int posX, int posY, int dx, int dy, int cost_g, int cost_h, int cost_f, Node* parent):
+        Node(int posX, int posY, int dx, int dy, int cost_g, int cost_h, int cost_f, int id,
+             int parent):
             positionX(posX),
             positionY(posY),
             dx(dx),
@@ -34,7 +36,8 @@ namespace _Guard_private_
             cost_g(cost_g),
             cost_h(cost_h),
             cost_f(cost_f),
-            parent(parent)
+            parent(parent),
+            idNode(id)
         {
         }
 
@@ -46,7 +49,8 @@ namespace _Guard_private_
             cost_g(u.cost_g),
             cost_h(u.cost_h),
             cost_f(u.cost_f),
-            parent(u.parent)
+            parent(u.parent),
+            idNode(u.idNode)
         {
         }
 
@@ -70,14 +74,16 @@ namespace _Guard_private_
             cost_h    = n.cost_h;
             cost_f    = n.cost_f;
             parent    = n.parent;
+            idNode    = n.idNode;
             return *this;
         }
 
         friend std::ostream& operator<<(std::ostream& os, const Node& v)
         {
-            return os << "mon adresse : " << &v << " son parent : " << v.parent << std::endl
-                      << " (" << v.positionX << ", " << v.positionY << ", " << v.cost_g << ", "
-                      << v.cost_h << ", " << v.cost_f << ")";
+            return os << " (x = " << v.positionX << ", y = " << v.positionY << ", dx = " << v.dx
+                      << ", dy = " << v.dy << ", g = " << v.cost_g << ", h = " << v.cost_h
+                      << ", f = " << v.cost_f << ", mon id : " << v.idNode
+                      << ", mon parent : " << v.parent << ")";
         }
     };
 
@@ -89,20 +95,19 @@ namespace _Guard_private_
         return x * x + y * y;
     }
 
-    void addNeighbor(std::forward_list<Node> memory, std::forward_list<Node*>& neighbor_list,
-                     Node& u, int i, int j, Node& end)
+    void addNeighbor(std::forward_list<Node>& neighbor_list, std::vector<Node>& parent, Node& u,
+                     int i, int j, Node& end)
     {
-        DEBUG("adresse de u dans addNeighbor : " << &u);
-        Node newNode(u.positionX + i, u.positionY + j, i, j, 0, 0, 0, &u);
+        Node newNode(u.positionX + i, u.positionY + j, i, j, 0, 0, 0, parent.size(), u.idNode);
         newNode.cost_g = u.cost_g + heuristique(newNode, u);
         newNode.cost_h = heuristique(newNode, end);
         newNode.cost_f = newNode.cost_g + newNode.cost_h;
-        memory.push_front(newNode);
-        neighbor_list.push_front(&memory.front());
+        parent.push_back(newNode);
+        neighbor_list.push_front(newNode);
     }
 
-    void computeNeighbor(CMover& m, Node& u, Node& end, std::forward_list<Node>& memory,
-                         std::forward_list<Node*>& neighbor, CMover* blockingMover)
+    void computeNeighbor(CMover& m, Node& u, Node& end, std::forward_list<Node>& neighbor,
+                         std::vector<Node>& parent, CMover* blockingMover)
     {
         Labyrinthe* l = m.getMaze();
         for (int i = -1; i <= 1; ++i)
@@ -114,12 +119,12 @@ namespace _Guard_private_
                     switch (l->getCellType(u.positionX + i, u.positionY + j))
                     {
                     case _EMPTY:
-                        addNeighbor(memory, neighbor, u, i, j, end);
+                        addNeighbor(neighbor, parent, u, i, j, end);
                         break;
                     case CMOVER:
                         if (l->getMover(u.positionX + i, u.positionY + j) != blockingMover)
                         {
-                            addNeighbor(memory, neighbor, u, i, j, end);
+                            addNeighbor(neighbor, parent, u, i, j, end);
                         }
                         break;
                     default:
@@ -130,61 +135,56 @@ namespace _Guard_private_
         }
     }
 
-    std::forward_list<Node> findShortestPath(CMover& m, Node end, CMover* blockingMover)
+    std::list<Node> findShortestPath(CMover& m, Node end, CMover* blockingMover)
     {
-        std::forward_list<Node> memory;
-        std::set<Node*>         closedList;
-        Heap<Node*>             openList;
-        Vec2i                   posGuard(Labyrinthe::realToGrid(m._x, m._y));
-        memory.push_front(Node(posGuard.x, posGuard.y, 0, 0, 0, 0, 0, nullptr));
-        Node* t = &memory.front();
-        openList.push(t);
+        std::vector<Node> parent;
+        std::set<Node>    closedList;
+        Heap<Node>        openList;
+        Vec2i             posGuard(Labyrinthe::realToGrid(m._x, m._y));
+        Node              start(posGuard.x, posGuard.y, 0, 0, 0, 0, 0, 0, -1);
+        openList.push(start);
+        parent.push_back(start);
         int round = 0;
         while (!openList.empty() && round < A_STAR_LIMIT)
         {
-            Node* u = openList.top();
+            Node u = openList.top();
             openList.pop();
-            DEBUG("valeur top : " << u);
-            if (*u == end)
+            if (u == end)
             {
-                std::forward_list<Node> path;
-                path.push_front(*u);
-                Node* parent = u->parent;
-                exit(1);
-                while (parent != nullptr)
+                std::list<Node> path;
+                path.push_front(u);
+                int Idparent = u.parent;
+                while (Idparent != -1)
                 {
-                    path.push_front(*parent);
-                    parent = parent->parent;
+                    Node& currentParent = parent.at(Idparent);
+                    path.push_back(currentParent);
+                    Idparent = currentParent.parent;
                 }
                 return path;
             }
-            std::forward_list<Node*> neighbor;
-            computeNeighbor(m, *u, end, memory, neighbor, blockingMover);
-            for (Node* v: neighbor)
+            std::forward_list<Node> neighbor;
+            computeNeighbor(m, u, end, neighbor, parent, blockingMover);
+            for (Node& v: neighbor)
             {
-                Node** otherV = openList.contains(v);
-
+                Node* otherV = openList.contains(v);
                 if (closedList.find(v) == closedList.end())
                 {
                     if (otherV != nullptr)
                     {
-                        if ((*otherV)->cost_f > v->cost_f)
+                        if (otherV->cost_f > v.cost_f)
                         {
-                            DEBUG(*otherV);
-                            **otherV = *v;
-                            DEBUG(*otherV);
+                            *otherV = v;
                         }
                     }
                     else
                     {
-                        DEBUG("nouveau noeud : " << v);
                         openList.push(v);
                     }
                 }
             }
             closedList.insert(u);
         }
-        return std::forward_list<Node>();
+        return std::list<Node>();
     }
 } // namespace _Guard_private_
 using namespace _Guard_private_;
@@ -240,10 +240,10 @@ public:
 class Pursuit: public Guard::State
 {
 private:
-    std::forward_list<Node>           m_pursuitPath;
-    std::forward_list<Node>::iterator m_actualCase;
-    int                               m_dest_x;
-    int                               m_dest_y;
+    std::list<Node>           m_pursuitPath;
+    std::list<Node>::iterator m_nextPosition;
+    int                       m_dest_x;
+    int                       m_dest_y;
 
 public:
     Pursuit(Guard* g, int x,
@@ -379,7 +379,7 @@ void Attack::enter() {}
 
 Pursuit::Pursuit(Guard* g, int x, int y): State(g), m_dest_x(x), m_dest_y(y)
 {
-    Node end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, nullptr);
+    Node end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
     m_pursuitPath = findShortestPath(*g, end, nullptr);
     if (m_pursuitPath.empty())
     {
@@ -387,7 +387,7 @@ Pursuit::Pursuit(Guard* g, int x, int y): State(g), m_dest_x(x), m_dest_y(y)
     }
     else
     {
-        m_actualCase = m_pursuitPath.begin();
+        m_nextPosition = m_pursuitPath.begin();
     }
 }
 
@@ -397,30 +397,47 @@ void Pursuit::update()
     {
         m_guard->setState(new Attack(m_guard));
     }
-    else if (m_actualCase == m_pursuitPath.end())
+    else if (m_nextPosition == m_pursuitPath.end())
     {
-        m_guard->setState(m_guard->m_toBeDeleted);
+        m_guard->enterDefaultState();
     }
     else
     {
-        Vec2i nextCase(m_guard->_x + m_actualCase->dx, m_guard->_y + m_actualCase->dy);
-        if (!m_guard->getMaze()->canGoTo(m_guard, nextCase.x, nextCase.y))
+        //On verifie qu'on n'est pas arriver à la case de destination
+        if (m_nextPosition->dx != 0 || m_nextPosition->dy != 0)
         {
-            CMover* blockingMover = m_guard->getMaze()->getMover(nextCase.x, nextCase.y);
-            Node    end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, nullptr);
-            m_pursuitPath = findShortestPath(*m_guard, end, blockingMover);
-            if (m_pursuitPath.empty())
+            Vec2i coordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+            Vec2i nextCase(coordGuard.x + m_nextPosition->dx, coordGuard.y + m_nextPosition->dy);
+            if (!m_guard->getMaze()->canGoTo(m_guard, nextCase.x, nextCase.y))
             {
-                m_guard->enterDefaultState();
+                // si la prochaine est case est bloqué a cause d'un mover, on refait un a*
+                // pour update le chemin
+                CMover* blockingMover = m_guard->getMaze()->getMover(nextCase.x, nextCase.y);
+                Node    end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
+                m_pursuitPath = findShortestPath(*m_guard, end, blockingMover);
+                if (m_pursuitPath.empty())
+                {
+                    m_guard->enterDefaultState();
+                }
+                else
+                {
+                    m_nextPosition = m_pursuitPath.begin();
+                }
             }
-            else
+            Vec2f unit(Vec2f(m_nextPosition->dx, m_nextPosition->dy).normalize());
+            m_guard->walk(unit, unit.angle());
+            Vec2i newCoordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+            //On passe au prochain du noeud du chemin si le gardien a changé de case dans le 
+            //labyrinthe.
+            if (coordGuard.x != newCoordGuard.x || coordGuard.y != newCoordGuard.y)
             {
-                m_actualCase = m_pursuitPath.begin();
+                ++m_nextPosition;
             }
         }
-        Vec2f unit(Vec2f(m_actualCase->dx, m_actualCase->dy).normalize());
-        m_guard->walk(unit, unit.angle());
-        ++m_actualCase;
+        else
+        {
+            m_guard->enterDefaultState();
+        }
     }
 }
 
@@ -546,7 +563,7 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
     Character(l, modele, id, maxpvs),
     m_speedX(1),
     m_speedY(1),
-    m_vision(7 * Environnement::scale),
+    m_vision(10 * Environnement::scale),
     m_state(new Defense(this)),
     m_toBeDeleted(nullptr)
 {

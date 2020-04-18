@@ -590,7 +590,7 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
     Character(l, modele, id, maxpvs),
     m_speedX(1),
     m_speedY(1),
-    m_vision(10 * Environnement::scale),
+    m_vision(15 * Environnement::scale),
     m_state(new Patrol(this)),
     m_toBeDeleted(nullptr),
     m_defense(false)

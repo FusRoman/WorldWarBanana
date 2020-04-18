@@ -37,6 +37,7 @@ private:
     static Sound* damage_hit;
     static Sound* heal_sound;
     static Sound* fire_sound;
+    static Sound* death_sound;
 
     float  m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
     float  m_speedY;

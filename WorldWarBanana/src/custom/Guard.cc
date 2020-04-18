@@ -489,6 +489,7 @@ void Damaged::enter() { m_guard->tomber(); }
 Dead::Dead(Guard* g): State(g, false) {}
 
 void Dead::update() {}
+
 void Dead::enter()
 {
     m_guard->rester_au_sol();
@@ -579,6 +580,7 @@ namespace _Guard_private_
 Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
 Sound* Guard::fire_sound = new Sound("sons/pk_fire.wav");
+Sound* Guard::death_sound = new Sound("sons/guard_die.wav");
 
 const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "garde", "Droid",
                                                "Lezard", "Samourai", "Serpent", "Squelette",
@@ -628,7 +630,11 @@ void Guard::hit(CMover* m, int damage)
     }
 }
 
-void Guard::die(CMover* m) { setState(new Dead(this)); }
+void Guard::die(CMover* m) 
+{ 
+    play(death_sound);
+    setState(new Dead(this)); 
+}
 
 void Guard::setState(State* state)
 {

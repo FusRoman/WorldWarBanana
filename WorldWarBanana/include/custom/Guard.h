@@ -40,8 +40,8 @@ private:
     float  m_speedY;
     float  m_vision;      // distance de vision maximale du gardiens
     State* m_state;       // état de l'automate du gardien
-    State* m_toBeDeleted; // ancien état de l'automate, à détruire (on ne peut pas le faire dans
-                          // setState)
+    State* m_toBeDeleted; // ancien état de l'automate, à détruire
+    bool   m_defense;     // true si le garde est affecté à la défense
 
     void setState(State* state);
     void enterDefaultState();

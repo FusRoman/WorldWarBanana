@@ -913,6 +913,17 @@ void Labyrinthe::flood()
     }
 
     // Mettre la case du trésor à umax ?
+
+    // Calcul de la plus grande distance
+    m_maxDistance = 0;
+    for (uint x = 0; x < m_width; ++x) {
+        for (uint y = 0; y < m_height; ++y) {
+            uint d = m_distances[y][x];
+            if (d != umax && d > m_maxDistance) {
+                m_maxDistance = d;
+            }
+        }
+    }
 }
 
 void Labyrinthe::fillDataMovers()

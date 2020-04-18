@@ -565,7 +565,8 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
     m_speedY(1),
     m_vision(10 * Environnement::scale),
     m_state(new Defense(this)),
-    m_toBeDeleted(nullptr)
+    m_toBeDeleted(nullptr),
+    m_defense(false)
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
@@ -592,7 +593,18 @@ void Guard::setState(State* state)
     state->enter();
 }
 
-void Guard::enterDefaultState() { setState(new Patrol(this)); }
+void Guard::enterDefaultState() 
+{ 
+    if (m_defense) 
+    {
+        setState(new Defense(this)); 
+    }
+    else
+    {
+        setState(new Patrol(this));
+    }
+    
+}
 
 bool Guard::canSeeHunter(bool _walk)
 {

@@ -39,6 +39,11 @@ private:
     uint** m_distances;
 
     /**
+     * @brief Distance maximale d'une case atteignable au trésor.
+     */
+    uint m_maxDistance;
+
+    /**
      * @brief Largeur du labyrinthe.
      */
     uint m_width;
@@ -207,6 +212,13 @@ public:
      * @brief Retourne la distance de la case (x, y) au trésor.
      */
     uint distanceFromTreasure(int x, int y) const;
+
+    /**
+     * @brief Retourne la distance au trésor de la case atteignable la plus éloignée de celui-ci.
+     */
+    uint getMaxDistance() const {
+        return m_maxDistance;
+    }
 
     /**
      * @brief Libère la case sur laquelle se trouve le mover actuel.

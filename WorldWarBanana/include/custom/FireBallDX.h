@@ -6,6 +6,9 @@
 /**
  * @brief Une classe dont le seul but est de permettre au joueur de lancer plusieurs boules de feu.
  * Classe auxiliaire à Weapon : elle ne fait rien d'elle-même.
+ * 
+ * Son second rôle est de mettre à jour la logique du jeu. Voir tick pour les raisons 
+ * derrière ce choix.
  */
 class FireBallDX: public CMover
 {
@@ -34,6 +37,7 @@ public:
 
     /**
      * @brief Met à jour le compteur d'updates si l'ID est 1.
+     * Réaffecte également les gardes à la défense ou à la patrouille quand il le veut.
      */
     virtual void update() override;
 

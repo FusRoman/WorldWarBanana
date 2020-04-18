@@ -216,7 +216,7 @@ public:
     /**
      * @brief Retourne la distance au trésor de la case atteignable la plus éloignée de celui-ci.
      */
-    uint getMaxDistance() const {
+    inline uint getMaxDistance() const {
         return m_maxDistance;
     }
 

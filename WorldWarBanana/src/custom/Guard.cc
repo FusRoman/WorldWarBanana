@@ -582,6 +582,15 @@ Guard::Guard(Labyrinthe* l, int modele, uint id, int maxpvs):
 
 Guard::~Guard() { delete m_state; }
 
+void Guard::affectToDefense(bool defense)
+{
+    if (m_defense != defense)
+    {
+        m_defense = defense;
+        enterDefaultState();
+    }
+}
+
 void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }
 
 void Guard::die(CMover* m) { setState(new Dead(this)); }

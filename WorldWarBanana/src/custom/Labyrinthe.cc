@@ -916,10 +916,13 @@ void Labyrinthe::flood()
 
     // Calcul de la plus grande distance
     m_maxDistance = 0;
-    for (uint x = 0; x < m_width; ++x) {
-        for (uint y = 0; y < m_height; ++y) {
+    for (uint x = 0; x < m_width; ++x) 
+    {
+        for (uint y = 0; y < m_height; ++y) 
+        {
             uint d = m_distances[y][x];
-            if (d != umax && d > m_maxDistance) {
+            if (d != umax && d > m_maxDistance) 
+            {
                 m_maxDistance = d;
             }
         }
@@ -1101,7 +1104,7 @@ uint Labyrinthe::getNbGuards() const { return _nguards - Weapon::maxNbBalls - 1;
 
 Guard* Labyrinthe::getGuard(uint index)
 {
-    return static_cast<Guard*>(_guards[index + getNbGuards()]);
+    return static_cast<Guard*>(_guards[index + Weapon::maxNbBalls + 1]);
 }
 
 uint Labyrinthe::distanceFromTreasure(int x, int y) const

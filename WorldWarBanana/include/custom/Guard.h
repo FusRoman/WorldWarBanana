@@ -58,6 +58,12 @@ public:
     Guard(Labyrinthe* l, int modele, uint id, int maxpvs);
     virtual ~Guard();
 
+    /**
+     * @brief Affecte le garde à la défense ou à la patrouille en fonction de defense.
+     * true si on veut l'affecter à la défense, false pour la patrouille.
+     */
+    void affectToDefense(bool defense);
+
     virtual void hit(CMover* m, int damage);
     virtual void die(CMover* m) override;
     virtual void update() override;

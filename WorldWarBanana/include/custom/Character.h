@@ -42,6 +42,13 @@ public:
      */
     virtual void die(CMover* m) = 0;
 
+    /**
+     * @brief Renvoie true si le Character est mort.
+     */
+    inline bool isDead() const {
+        return m_pv <= 0;
+    }
+
     virtual bool process_fireball(float dx, float dy) override;
     virtual void fire(int angle_vertical) override;
 

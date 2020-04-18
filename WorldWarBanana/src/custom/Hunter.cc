@@ -16,8 +16,15 @@ Hunter::Hunter(Labyrinthe* l, uint id): Character(l, 0, id, 100)
 {
     m_damage_hit = _hunter_hit;
     m_heal_sound = heal_sound;
+    message("PV: %d", m_pv);
 }
 
 void Hunter::update() {}
 
 void Hunter::die(CMover* m) { partie_terminee(false); }
+
+void Hunter::hit(CMover* m, int damage)
+{
+    Character::hit(m, damage);
+    message("PV: %d (last shot by guard %d)", m_pv, m->id());
+}

@@ -21,7 +21,10 @@ void FireBallDX::update()
 
         // Mise à jour des gardes
         float dmax = (float) m_laby->getMaxDistance();
-        float threshold = 10.;
+        // 7200. : tick à partir duquel la proportion de gardes a doublé
+        // par rapport au tout début (ici, 2 minutes);
+        float coef = 0.1 * ((float) m_tick / 7200. + 1.);
+        float threshold = coef * (float) m_laby->getNbGuards();
         float sum = 0.;
         for (uint i = 0; i < m_laby->getNbGuards(); ++i)
         {
@@ -33,7 +36,7 @@ void FireBallDX::update()
 
             Vec2i p = Labyrinthe::realToGrid(guard->_x, guard->_y);
             float di = (float) m_laby->distanceFromTreasure(p.x, p.y);
-            sum += dmax / di;
+            sum += di / dmax;
             guard->affectToDefense(sum <= threshold);
         }
     }

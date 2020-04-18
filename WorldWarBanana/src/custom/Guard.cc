@@ -252,6 +252,17 @@ public:
     virtual void enter() override;
 };
 
+class Damaged: public Guard::State
+{
+private:
+    uint m_start;
+
+public:
+    Damaged(Guard *g);
+    virtual void update() override;
+    virtual void enter() override;
+};
+
 class Dead: public Guard::State
 {
 public:
@@ -457,6 +468,27 @@ void Patrol::enter() {}
 
 /**************************************************************************************************
  *
+ * Damaged
+ *
+ *************************************************************************************************/
+
+Damaged::Damaged(Guard* g): State(g, false), m_start (FireBallDX::tick()) {}
+
+void Damaged::update()
+{
+    if (FireBallDX::tick() - m_start >= 90)
+    {
+        m_guard->enterDefaultState();
+    }
+}
+
+void Damaged::enter()
+{
+    m_guard->tomber();
+}
+
+/**************************************************************************************************
+ *
  * Dead
  *
  *************************************************************************************************/
@@ -594,7 +626,14 @@ void Guard::affectToDefense(bool defense)
     }
 }
 
-void Guard::hit(CMover* m, int damage) { Character::hit(m, damage); }
+void Guard::hit(CMover* m, int damage) 
+{ 
+    Character::hit(m, damage);
+    if (damage > 0 && !isDead())
+    {
+        setState(new Damaged(this));
+    }
+}
 
 void Guard::die(CMover* m) { setState(new Dead(this)); }
 

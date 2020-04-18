@@ -520,8 +520,9 @@ bool Guard::canSeeHunter(bool _walk)
         // Les gardes ne peuvent pas voir à travers les murs
         // Et leur champ de vision est limité à 180° sur les côtés
         // (d'où le produit scalaire)
-        Vec2f facing(m_speedX, m_speedY);
-        see = (gh.dot(facing) > 0) ? dda(this, g, gh / norm, norm) : false;
+        //Vec2f facing(m_speedX, m_speedY);
+        //see = (gh.dot(facing) > 0) ? dda(this, g, gh / norm, norm) : false;
+        see = dda(this, g, gh / norm, norm);
     }
 
     if (_walk && see)

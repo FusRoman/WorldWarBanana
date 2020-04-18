@@ -574,7 +574,7 @@ uint Labyrinthe::allocate()
     for (uint g = i; g < nbguards; ++g)
     {
         int rd     = randomInt(0, Guard::modeles.size() - 1);
-        _guards[g] = new Guard(this, rd, g, 150);
+        _guards[g] = new Guard(this, rd, g, 50);
     }
 
     _nguards = nbguards;
@@ -919,11 +919,11 @@ void Labyrinthe::fillDataMovers()
 {
     for (int i = 0; i < _nguards; ++i)
     {
-        CMover* guard = (CMover*) _guards[i];
-        if (guard->block())
+        CMover* mover = (CMover*) _guards[i];
+        if (mover->block())
         {
-            Vec2i p          = realToGrid(guard->_x, guard->_y);
-            m_data[p.y][p.x] = guard->id() + CMOVER;
+            Vec2i p          = realToGrid(mover->_x, mover->_y);
+            m_data[p.y][p.x] = mover->id() + CMOVER;
         }
     }
 }

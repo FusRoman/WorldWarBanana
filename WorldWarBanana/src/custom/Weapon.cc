@@ -49,11 +49,11 @@ Weapon::Weapon(CMover* owner):
     setAngle(15);*/
     if (owner->id() == 0)
     {
-        setDamage(100);
+        setDamage(10);
     }
     else
     {
-        setDamage(1);
+        setDamage(10);
     }
 }
 

@@ -190,8 +190,6 @@ namespace _Guard_private_
 } // namespace _Guard_private_
 using namespace _Guard_private_;
 
-int Guard::State::m_lastId = 0;
-
 /**************************************************************************************************
  *
  * Déclaration des états

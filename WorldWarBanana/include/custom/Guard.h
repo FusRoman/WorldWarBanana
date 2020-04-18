@@ -44,6 +44,7 @@ private:
                           // setState)
 
     void setState(State* state);
+    void enterDefaultState();
     bool canSeeHunter(bool _walk);
     void face(const Vec2f& d);
     void face(const Vec2f& d, float radians);

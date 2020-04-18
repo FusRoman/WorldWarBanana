@@ -1,7 +1,7 @@
 #include "Guard.h"
 
-#include "Labyrinthe.h"
 #include "Heap.h"
+#include "Labyrinthe.h"
 
 /**************************************************************************************************
  *
@@ -11,42 +11,52 @@
 
 namespace _Guard_private_
 {
+
+    const static int A_STAR_LIMIT = 50;
+
     class Node
     {
     public:
-        int   positionX;
-        int   positionY;
-        int   dx;
-        int   dy;
-        int   cost;
-        int   heuristique;
-        Node* parent;
+        int positionX;
+        int positionY;
+        int dx;
+        int dy;
+        int cost_g;
+        int cost_h;
+        int cost_f;
+        int parent;
+        int idNode;
 
-        Node(int posX, int posY, int dx, int dy, int cost, int heuristique, Node* parent):
-            positionX   (posX),
-            positionY   (posY),
-            dx          (dx),
-            dy          (dy),
-            cost        (cost),
-            heuristique (heuristique),
-            parent      (parent)
+        Node(int posX, int posY, int dx, int dy, int cost_g, int cost_h, int cost_f, int id,
+             int parent):
+            positionX(posX),
+            positionY(posY),
+            dx(dx),
+            dy(dy),
+            cost_g(cost_g),
+            cost_h(cost_h),
+            cost_f(cost_f),
+            parent(parent),
+            idNode(id)
         {
         }
 
         Node(const Node& u):
-            positionX   (u.positionX),
-            positionY   (u.positionY),
-            dx          (u.dx),
-            dy          (u.dy),
-            cost        (u.cost),
-            heuristique (u.heuristique),
-            parent      (u.parent)
+            positionX(u.positionX),
+            positionY(u.positionY),
+            dx(u.dx),
+            dy(u.dy),
+            cost_g(u.cost_g),
+            cost_h(u.cost_h),
+            cost_f(u.cost_f),
+            parent(u.parent),
+            idNode(u.idNode)
         {
         }
 
         friend inline bool operator<(const Node& n1, const Node& n2)
         {
-            return n1.heuristique < n2.heuristique;
+            return n1.cost_f < n2.cost_f;
         }
 
         friend inline bool operator==(const Node& n1, const Node& n2)
@@ -56,28 +66,48 @@ namespace _Guard_private_
 
         Node& operator=(const Node& n)
         {
-            positionX   = n.positionX;
-            positionY   = n.positionY;
-            dx          = n.dx;
-            dy          = n.dy;
-            cost        = n.cost;
-            heuristique = n.heuristique;
-            parent      = n.parent;
+            positionX = n.positionX;
+            positionY = n.positionY;
+            dx        = n.dx;
+            dy        = n.dy;
+            cost_g    = n.cost_g;
+            cost_h    = n.cost_h;
+            cost_f    = n.cost_f;
+            parent    = n.parent;
+            idNode    = n.idNode;
             return *this;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Node& v)
+        {
+            return os << " (x = " << v.positionX << ", y = " << v.positionY << ", dx = " << v.dx
+                      << ", dy = " << v.dy << ", g = " << v.cost_g << ", h = " << v.cost_h
+                      << ", f = " << v.cost_f << ", mon id : " << v.idNode
+                      << ", mon parent : " << v.parent << ")";
         }
     };
 
-    bool compareNode(Node n1, Node n2) { return n1.heuristique > n2.heuristique; }
-
     int heuristique(Node& u, Node& v)
     {
-        //return u.positionX * v.positionX + u.positionY * v.positionY;
+        // return u.positionX * v.positionX + u.positionY * v.positionY;
         int x = u.positionX - v.positionX;
         int y = u.positionY - v.positionY;
         return x * x + y * y;
     }
 
-    void computeNeighbor(CMover& m, Node& u, Node& end, std::forward_list<Node>& neighbor)
+    void addNeighbor(std::forward_list<Node>& neighbor_list, std::vector<Node>& parent, Node& u,
+                     int i, int j, Node& end)
+    {
+        Node newNode(u.positionX + i, u.positionY + j, i, j, 0, 0, 0, parent.size(), u.idNode);
+        newNode.cost_g = u.cost_g + heuristique(newNode, u);
+        newNode.cost_h = heuristique(newNode, end);
+        newNode.cost_f = newNode.cost_g + newNode.cost_h;
+        parent.push_back(newNode);
+        neighbor_list.push_front(newNode);
+    }
+
+    void computeNeighbor(CMover& m, Node& u, Node& end, std::forward_list<Node>& neighbor,
+                         std::vector<Node>& parent, CMover* blockingMover)
     {
         Labyrinthe* l = m.getMaze();
         for (int i = -1; i <= 1; ++i)
@@ -86,60 +116,75 @@ namespace _Guard_private_
             {
                 if (i != 0 || j != 0)
                 {
-                    if (l->canGoTo(&m, u.positionX + i, u.positionY + j))
+                    switch (l->getCellType(u.positionX + i, u.positionY + j))
                     {
-                        Node newNode(u.positionX + i, u.positionY + j, i, j, u.cost + 1,
-                                     heuristique(u, end), &u);
-                        neighbor.push_front(newNode);
+                    case _EMPTY:
+                        addNeighbor(neighbor, parent, u, i, j, end);
+                        break;
+                    case CMOVER:
+                        if (l->getMover(u.positionX + i, u.positionY + j) != blockingMover)
+                        {
+                            addNeighbor(neighbor, parent, u, i, j, end);
+                        }
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
         }
     }
 
-    std::forward_list<Node> findShortestPath(CMover& m, Node end)
+    std::list<Node> findShortestPath(CMover& m, Node end, CMover* blockingMover)
     {
-        std::set<Node> closedList;
-        Heap<Node>     openList;
-        Vec2i          posGuard(Labyrinthe::realToGrid(m._x, m._y));
-        Node           start(posGuard.x, posGuard.y, 0, 0, 0, 0, nullptr);
-        DEBUG("start node : " << start.positionX << ", " << start.positionY);
+        std::vector<Node> parent;
+        std::set<Node>    closedList;
+        Heap<Node>        openList;
+        Vec2i             posGuard(Labyrinthe::realToGrid(m._x, m._y));
+        Node              start(posGuard.x, posGuard.y, 0, 0, 0, 0, 0, 0, -1);
         openList.push(start);
-        while (!openList.empty())
+        parent.push_back(start);
+        int round = 0;
+        while (!openList.empty() && round < A_STAR_LIMIT)
         {
-            // std::cout << openList.size() << std::endl;
-            Node u(openList.top());
-            DEBUG(end.positionX << ", " << end.positionY);
-            DEBUG(u.positionX << ", " << u.positionY);
+            Node u = openList.top();
             openList.pop();
             if (u == end)
             {
-                DEBUG("coucou la fin");
-                std::forward_list<Node> path;
+                std::list<Node> path;
                 path.push_front(u);
-                Node* parent = u.parent;
-                while (parent != nullptr)
+                int Idparent = u.parent;
+                while (Idparent != -1)
                 {
-                    path.push_front(*parent);
-                    parent = parent->parent;
+                    Node& currentParent = parent.at(Idparent);
+                    path.push_back(currentParent);
+                    Idparent = currentParent.parent;
                 }
                 return path;
             }
             std::forward_list<Node> neighbor;
-            computeNeighbor(m, u, end, neighbor);
+            computeNeighbor(m, u, end, neighbor, parent, blockingMover);
             for (Node& v: neighbor)
             {
                 Node* otherV = openList.contains(v);
-                if (closedList.find(v) == closedList.end() && otherV == nullptr)
+                if (closedList.find(v) == closedList.end())
                 {
-                    Node newNode(v.positionX, v.positionY, v.dx, v.dy, u.cost + 1,
-                                 v.cost + heuristique(v, end), &u);
-                    openList.push(newNode);
+                    if (otherV != nullptr)
+                    {
+                        if (otherV->cost_f > v.cost_f)
+                        {
+                            *otherV = v;
+                        }
+                    }
+                    else
+                    {
+                        openList.push(v);
+                    }
                 }
             }
             closedList.insert(u);
         }
-        throw std::domain_error("no path");
+        return std::list<Node>();
     }
 } // namespace _Guard_private_
 using namespace _Guard_private_;
@@ -195,11 +240,14 @@ public:
 class Pursuit: public Guard::State
 {
 private:
-    std::forward_list<Node>           pursuitPath;
-    std::forward_list<Node>::iterator actualCase;
+    std::list<Node>           m_pursuitPath;
+    std::list<Node>::iterator m_nextPosition;
+    int                       m_dest_x;
+    int                       m_dest_y;
 
 public:
-    Pursuit(Guard* g);
+    Pursuit(Guard* g, int x,
+            int y); // x et y sont les coordonnées du noeud initial pour l'algorithme de pathFinding
     virtual void update() override;
     virtual void enter() override;
 };
@@ -309,7 +357,9 @@ void Attack::update()
 {
     if (!m_guard->canSeeHunter(true))
     {
-        m_guard->setState(new Pursuit(m_guard));
+        Vec2i coordGrid = Labyrinthe::realToGrid(m_guard->getMaze()->getHunter()->_x,
+                                                 m_guard->getMaze()->getHunter()->_y);
+        m_guard->setState(new Pursuit(m_guard, coordGrid.x, coordGrid.y));
     }
     else
     {
@@ -327,14 +377,18 @@ void Attack::enter() {}
  *
  *************************************************************************************************/
 
-Pursuit::Pursuit(Guard* g): State(g)
+Pursuit::Pursuit(Guard* g, int x, int y): State(g), m_dest_x(x), m_dest_y(y)
 {
-    Vec2i posHunter =
-        Labyrinthe::realToGrid(g->getMaze()->getHunter()->_x, g->getMaze()->getHunter()->_y);
-    Node end(posHunter.x, posHunter.y, 0, 0, 0, 0, nullptr);
-    std::cout << "end node : " << end.positionX << ", " << end.positionY << std::endl;
-    pursuitPath = findShortestPath(*g, end);
-    actualCase  = pursuitPath.begin();
+    Node end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
+    m_pursuitPath = findShortestPath(*g, end, nullptr);
+    if (m_pursuitPath.empty())
+    {
+        m_guard->enterDefaultState();
+    }
+    else
+    {
+        m_nextPosition = m_pursuitPath.begin();
+    }
 }
 
 void Pursuit::update()
@@ -343,15 +397,47 @@ void Pursuit::update()
     {
         m_guard->setState(new Attack(m_guard));
     }
-    else if (actualCase == pursuitPath.end())
+    else if (m_nextPosition == m_pursuitPath.end())
     {
-        m_guard->setState(m_guard->m_toBeDeleted);
+        m_guard->enterDefaultState();
     }
     else
     {
-        Vec2f unit(Vec2f(actualCase->dx, actualCase->dy).normalize());
-        m_guard->face(unit, unit.angle());
-        ++actualCase;
+        //On verifie qu'on n'est pas arriver à la case de destination
+        if (m_nextPosition->dx != 0 || m_nextPosition->dy != 0)
+        {
+            Vec2i coordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+            Vec2i nextCase(coordGuard.x + m_nextPosition->dx, coordGuard.y + m_nextPosition->dy);
+            if (!m_guard->getMaze()->canGoTo(m_guard, nextCase.x, nextCase.y))
+            {
+                // si la prochaine est case est bloqué a cause d'un mover, on refait un a*
+                // pour update le chemin
+                CMover* blockingMover = m_guard->getMaze()->getMover(nextCase.x, nextCase.y);
+                Node    end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
+                m_pursuitPath = findShortestPath(*m_guard, end, blockingMover);
+                if (m_pursuitPath.empty())
+                {
+                    m_guard->enterDefaultState();
+                }
+                else
+                {
+                    m_nextPosition = m_pursuitPath.begin();
+                }
+            }
+            Vec2f unit(Vec2f(m_nextPosition->dx, m_nextPosition->dy).normalize());
+            m_guard->walk(unit, unit.angle());
+            Vec2i newCoordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+            //On passe au prochain du noeud du chemin si le gardien a changé de case dans le 
+            //labyrinthe.
+            if (coordGuard.x != newCoordGuard.x || coordGuard.y != newCoordGuard.y)
+            {
+                ++m_nextPosition;
+            }
+        }
+        else
+        {
+            m_guard->enterDefaultState();
+        }
     }
 }
 
@@ -477,7 +563,7 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
     Character(l, modele, id, maxpvs),
     m_speedX(1),
     m_speedY(1),
-    m_vision(7 * Environnement::scale),
+    m_vision(10 * Environnement::scale),
     m_state(new Defense(this)),
     m_toBeDeleted(nullptr)
 {
@@ -505,6 +591,8 @@ void Guard::setState(State* state)
     m_state       = state;
     state->enter();
 }
+
+void Guard::enterDefaultState() { setState(new Patrol(this)); }
 
 bool Guard::canSeeHunter(bool _walk)
 {

@@ -14,13 +14,16 @@ class Guard: public Character
 private:
     class State
     {
+    private:
+        static int m_lastId;
     protected:
+        int m_id;
         Guard* m_guard;
 
     public:
         const bool m_default;
 
-        State(Guard* g, bool isDefault): m_guard(g), m_default(isDefault) {}
+        State(Guard* g, bool isDefault):m_id(m_lastId++), m_guard(g), m_default(isDefault) {}
         virtual ~State() {}
         virtual void update()    = 0;
         virtual void enter()     = 0;

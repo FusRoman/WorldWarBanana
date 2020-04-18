@@ -18,10 +18,12 @@ private:
         Guard* m_guard;
 
     public:
-        State(Guard* g): m_guard(g) {}
+        const bool m_default;
+
+        State(Guard* g, bool isDefault): m_guard(g), m_default(isDefault) {}
         virtual ~State() {}
-        virtual void update() = 0;
-        virtual void enter()  = 0;
+        virtual void update()    = 0;
+        virtual void enter()     = 0;
     };
 
     friend class Walking;

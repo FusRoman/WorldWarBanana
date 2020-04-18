@@ -207,7 +207,7 @@ protected:
     virtual std::pair<Vec2f, float> newDirection() = 0;
 
 public:
-    Walking(Guard* g);
+    Walking(Guard* g, bool isDefault);
     virtual void update() override;
 };
 
@@ -266,7 +266,7 @@ public:
  *
  *************************************************************************************************/
 
-Walking::Walking(Guard* g): State(g) {}
+Walking::Walking(Guard* g, bool isDefault): State(g, isDefault) {}
 
 void Walking::updateDirection()
 {
@@ -310,7 +310,7 @@ void Walking::update()
  *
  *************************************************************************************************/
 
-Defense::Defense(Guard* g): Walking(g) {}
+Defense::Defense(Guard* g): Walking(g, true) {}
 
 std::pair<Vec2f, float> Defense::newDirection()
 {
@@ -351,7 +351,7 @@ void Defense::enter() {}
  *
  *************************************************************************************************/
 
-Attack::Attack(Guard* g): State(g) {}
+Attack::Attack(Guard* g): State(g, false) {}
 
 void Attack::update()
 {
@@ -377,7 +377,7 @@ void Attack::enter() {}
  *
  *************************************************************************************************/
 
-Pursuit::Pursuit(Guard* g, int x, int y): State(g), m_dest_x(x), m_dest_y(y)
+Pursuit::Pursuit(Guard* g, int x, int y): State(g, false), m_dest_x(x), m_dest_y(y)
 {
     Node end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
     m_pursuitPath = findShortestPath(*g, end, nullptr);
@@ -449,7 +449,7 @@ void Pursuit::enter() {}
  *
  *************************************************************************************************/
 
-Patrol::Patrol(Guard* g): Walking(g) {}
+Patrol::Patrol(Guard* g): Walking(g, true) {}
 
 std::pair<Vec2f, float> Patrol::newDirection() { return randomVector(); }
 
@@ -461,7 +461,7 @@ void Patrol::enter() {}
  *
  *************************************************************************************************/
 
-Dead::Dead(Guard* g): State(g) {}
+Dead::Dead(Guard* g): State(g, false) {}
 
 void Dead::update() {}
 void Dead::enter()
@@ -587,7 +587,10 @@ void Guard::affectToDefense(bool defense)
     if (m_defense != defense)
     {
         m_defense = defense;
-        enterDefaultState();
+        if (m_state->m_default)
+        {
+            enterDefaultState();
+        }
     }
 }
 

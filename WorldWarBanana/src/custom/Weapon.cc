@@ -50,6 +50,7 @@ Weapon::Weapon(CMover* owner):
     if (owner->id() == 0)
     {
         setDamage(10);
+        setCooldown(60);
     }
     else
     {

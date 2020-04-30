@@ -660,7 +660,6 @@ void Guard::enterDefaultState()
     {
         setState(new Patrol(this));
     }
-    
 }
 
 bool Guard::canSeeHunter(bool _walk)

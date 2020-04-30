@@ -1,0 +1,27 @@
+a voiture.jpg
+# Celui-ci n'est pas valide : il n'y a pas assez d'espace pour les posters
+#+--+-+--+
+#|T a a C|
+#|  +-+  |
+#|       |
+#+a+   +a+
+#+-+---+-+
+
+# Celui-ci est valide
+#+--+-+--+
+#|T a a C|
+#|  | |  |
+#|  +-+  |
+#|       |
+#+a-+ +a-+
+#+--+-+--+
+
+ +------a+--+
+ |C      |  |
+ |       |  |
+ |       |  |
+ |       |  |
+ |       |  |
+ |       |  |
+ |      T|  |
+ +-------+--+

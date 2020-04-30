@@ -228,6 +228,16 @@ namespace Labyrinthe_private
         }
     }
 
+    /*bool isHWall(char c)
+    {
+        return c == '-' || c == '+' || isLowerCase(c);
+    }
+
+    bool isVWall(char c)
+    {
+        return c == '|' || c == '+' || isLowerCase(c);
+    }*/
+
     // A appeler quand on lit un poster et qu'on ne sait pas dans quelle direction il est orienté
     // Renvoie true si le poster est aligné
     // saved est le curseur positionné sur le tout début du labyrinthe
@@ -241,6 +251,8 @@ namespace Labyrinthe_private
              up = getChar(state, x, y - 1), bottom = getChar(state, x, y + 1);
         bool h = left == '-' || left == '+' || right == '-' || right == '+',
              v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
+        /*bool h = isHWall(left) || isHWall(right),
+             v = isVWall(down) || isVWall(up);*/
         if (h && v)
         {
             error("Poster used in place of '+'.");
@@ -272,6 +284,8 @@ namespace Labyrinthe_private
              up = getChar(state, x, y - 1), bottom = getChar(state, x, y + 1);
         bool h = left == '-' || left == '+' || right == '-' || right == '+',
              v = up == '|' || up == '+' || bottom == '|' || bottom == '+';
+        /*bool h = isHWall(left) || isHWall(right),
+             v = isVWall(down) || isVWall(up);*/
         if (state.horizontal)
         {
             return (!h && v) ? PERPENDICULAR_WALL : CROSS;
@@ -491,6 +505,7 @@ namespace Labyrinthe_private
         {
         case CROSS:
             state.transition = endOfWall;
+            //error("Not enough room left for the poster");
             break;
 
         case ALIGNED_WALL:

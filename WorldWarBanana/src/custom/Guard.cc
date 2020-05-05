@@ -12,7 +12,7 @@
 namespace _Guard_private_
 {
 
-    const static int A_STAR_LIMIT = 50;
+    const static int A_STAR_LIMIT = 10;
 
     class Node
     {
@@ -157,7 +157,7 @@ namespace _Guard_private_
                 while (Idparent != -1)
                 {
                     Node& currentParent = parent.at(Idparent);
-                    path.push_back(currentParent);
+                    path.push_front(currentParent);
                     Idparent = currentParent.parent;
                 }
                 return path;
@@ -183,6 +183,7 @@ namespace _Guard_private_
                 }
             }
             closedList.insert(u);
+            ++round;
         }
         return std::list<Node>();
     }
@@ -258,7 +259,7 @@ private:
     uint m_start;
 
 public:
-    Damaged(Guard *g);
+    Damaged(Guard* g);
     virtual void update() override;
     virtual void enter() override;
 };
@@ -292,6 +293,7 @@ void Walking::update()
     if (m_guard->canSeeHunter(false))
     {
         m_guard->setState(new Attack(m_guard));
+        return;
     }
     else if (m_lastDirectionUpdate == m_duration)
     {
@@ -392,13 +394,10 @@ Pursuit::Pursuit(Guard* g, int x, int y): State(g, false), m_dest_x(x), m_dest_y
 {
     Node end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
     m_pursuitPath = findShortestPath(*g, end, nullptr);
-    if (m_pursuitPath.empty())
-    {
-        m_guard->enterDefaultState();
-    }
-    else
+    if (!m_pursuitPath.empty())
     {
         m_nextPosition = m_pursuitPath.begin();
+        ++m_nextPosition;
     }
 }
 
@@ -407,47 +406,44 @@ void Pursuit::update()
     if (m_guard->canSeeHunter(false))
     {
         m_guard->setState(new Attack(m_guard));
+        return;
     }
-    else if (m_nextPosition == m_pursuitPath.end())
+    else if (m_pursuitPath.empty() || m_nextPosition == m_pursuitPath.end())
     {
         m_guard->enterDefaultState();
+        return;
     }
     else
     {
-        //On verifie qu'on n'est pas arriver à la case de destination
-        if (m_nextPosition->dx != 0 || m_nextPosition->dy != 0)
+
+        Vec2i coordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+        Vec2i nextCase(coordGuard.x + m_nextPosition->dx, coordGuard.y + m_nextPosition->dy);
+        if (!m_guard->getMaze()->canGoTo(m_guard, nextCase.x, nextCase.y))
         {
-            Vec2i coordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
-            Vec2i nextCase(coordGuard.x + m_nextPosition->dx, coordGuard.y + m_nextPosition->dy);
-            if (!m_guard->getMaze()->canGoTo(m_guard, nextCase.x, nextCase.y))
+            // si la prochaine est case est bloqué a cause d'un mover, on refait un a*
+            // pour update le chemin
+            CMover* blockingMover = m_guard->getMaze()->getMover(nextCase.x, nextCase.y);
+            Node    end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
+            m_pursuitPath = findShortestPath(*m_guard, end, blockingMover);
+            if (m_pursuitPath.empty())
             {
-                // si la prochaine est case est bloqué a cause d'un mover, on refait un a*
-                // pour update le chemin
-                CMover* blockingMover = m_guard->getMaze()->getMover(nextCase.x, nextCase.y);
-                Node    end(m_dest_x, m_dest_y, 0, 0, 0, 0, 0, 0, 0);
-                m_pursuitPath = findShortestPath(*m_guard, end, blockingMover);
-                if (m_pursuitPath.empty())
-                {
-                    m_guard->enterDefaultState();
-                }
-                else
-                {
-                    m_nextPosition = m_pursuitPath.begin();
-                }
+                m_guard->enterDefaultState();
             }
-            Vec2f unit(Vec2f(m_nextPosition->dx, m_nextPosition->dy).normalize());
-            m_guard->walk(unit, unit.angle());
-            Vec2i newCoordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
-            //On passe au prochain du noeud du chemin si le gardien a changé de case dans le 
-            //labyrinthe.
-            if (coordGuard.x != newCoordGuard.x || coordGuard.y != newCoordGuard.y)
+            else
             {
+                m_nextPosition = m_pursuitPath.begin();
                 ++m_nextPosition;
             }
         }
-        else
+        Vec2f unit(Vec2f(m_nextPosition->dx, m_nextPosition->dy).normalize());
+        m_guard->walk(unit, unit.angle());
+        Vec2i newCoordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+        // On passe au prochain du noeud du chemin si le gardien a changé de case dans le
+        // labyrinthe.
+        if (newCoordGuard.x == m_nextPosition->positionX &&
+            newCoordGuard.y == m_nextPosition->positionY)
         {
-            m_guard->enterDefaultState();
+            ++m_nextPosition;
         }
     }
 }
@@ -472,7 +468,7 @@ void Patrol::enter() {}
  *
  *************************************************************************************************/
 
-Damaged::Damaged(Guard* g): State(g, false), m_start (FireBallDX::tick()) {}
+Damaged::Damaged(Guard* g): State(g, false), m_start(FireBallDX::tick()) {}
 
 void Damaged::update()
 {
@@ -482,10 +478,7 @@ void Damaged::update()
     }
 }
 
-void Damaged::enter()
-{
-    m_guard->tomber();
-}
+void Damaged::enter() { m_guard->tomber(); }
 
 /**************************************************************************************************
  *
@@ -597,7 +590,7 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
     Character(l, modele, id, maxpvs),
     m_speedX(1),
     m_speedY(1),
-    m_vision(10 * Environnement::scale),
+    m_vision(15 * Environnement::scale),
     m_state(new Patrol(this)),
     m_toBeDeleted(nullptr),
     m_defense(false)
@@ -628,8 +621,8 @@ void Guard::affectToDefense(bool defense)
     }
 }
 
-void Guard::hit(CMover* m, int damage) 
-{ 
+void Guard::hit(CMover* m, int damage)
+{
     Character::hit(m, damage);
     if (damage > 0 && !isDead())
     {
@@ -650,11 +643,11 @@ void Guard::setState(State* state)
     state->enter();
 }
 
-void Guard::enterDefaultState() 
-{ 
-    if (m_defense) 
+void Guard::enterDefaultState()
+{
+    if (m_defense)
     {
-        setState(new Defense(this)); 
+        setState(new Defense(this));
     }
     else
     {
@@ -676,8 +669,8 @@ bool Guard::canSeeHunter(bool _walk)
         // Les gardes ne peuvent pas voir à travers les murs
         // Et leur champ de vision est limité à 180° sur les côtés
         // (d'où le produit scalaire)
-        //Vec2f facing(m_speedX, m_speedY);
-        //see = (gh.dot(facing) > 0) ? dda(this, g, gh / norm, norm) : false;
+        // Vec2f facing(m_speedX, m_speedY);
+        // see = (gh.dot(facing) > 0) ? dda(this, g, gh / norm, norm) : false;
         see = dda(this, g, gh / norm, norm);
     }
 

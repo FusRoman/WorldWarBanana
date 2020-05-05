@@ -22,8 +22,8 @@ private:
 
         State(Guard* g, bool isDefault): m_guard(g), m_default(isDefault) {}
         virtual ~State() {}
-        virtual void update()    = 0;
-        virtual void enter()     = 0;
+        virtual void update() = 0;
+        virtual void enter()  = 0;
     };
 
     friend class Walking;

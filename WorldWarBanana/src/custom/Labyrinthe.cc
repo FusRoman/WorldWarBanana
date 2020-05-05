@@ -345,7 +345,7 @@ namespace Labyrinthe_private
             Box* box   = laby->_boxes + state.indexBoxes;
             box->_x    = state.x;
             box->_y    = state.y;
-            box->_ntex = 0;
+            box->_ntex = laby->boxTex;
             ++state.indexBoxes;
             break;
         }
@@ -1008,6 +1008,11 @@ bool Labyrinthe::move(CMover* mover, double dx, double dy)
 
 Labyrinthe::Labyrinthe(char* filename)
 {
+    // Chargement de différentes textures
+    char tmp[128];
+    sprintf(tmp, "%s/%s", texture_dir, "boite.jpg");
+    boxTex = Environnement::wall_texture(tmp);
+
     // Chargement du fichier
     std::ifstream file;
     try

@@ -131,6 +131,11 @@ private:
 
 public:
     /**
+     * @brief Texture des boîtes
+     */
+    int boxTex;
+
+    /**
      * @brief Renvoie des coordonnées utilisables par les Mover depuis les coordonnées d'une case.
      */
     static Vec2f gridToReal(int x, int y);

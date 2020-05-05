@@ -2,26 +2,31 @@
 #define SOUND_H
 
 #ifdef _WIN32
-#include <conio.h>
-#include <windows.h>
-#endif
-
+#	include <windows.h>
+#include <stdio.h>
+#include <pthread.h>
+#else
 #include "fmod.hpp"
 #include "fmod_errors.h"
+#endif
 
-class Sound
-{
+#define MAX_SOUNDS	64
+
+class Sound {
 private:
-    static FMOD::System*  _system;
-    static FMOD::Channel* _channel;
-    static int            _nsounds; // compte d'occurrences.
+#ifdef _WIN32
+	char*	_sound;		// buffer contenant l'image du fichier.
+#else
+	static FMOD::System*	_system;
+	static FMOD::Channel*	_channel;
+	FMOD::Sound*			_sound;
+#endif
+	static int				_nsounds;	// compte d'occurrences.
 
-    FMOD::Sound* _sound;
-    void         init(void);
-
+	void init (void);
 public:
-    Sound(const char*);                           // charge un fichier de sons.
-    ~Sound();                                     // libère les échantillons.
-    void play(float volume = 1., float pan = 0.); // le fait jouer.
+	Sound (const char*);							// charge un fichier de sons.
+	~Sound ();										// libère les échantillons.
+	void play (float volume =1., float pan =0.);	// le fait jouer.
 };
 #endif

@@ -15,6 +15,8 @@ Vec2f Labyrinthe::gridToReal(int x, int y) { return Vec2f(x * scale, y * scale);
 
 Vec2i Labyrinthe::realToGrid(float x, float y) { return Vec2i(x / scale, y / scale); }
 
+Sound* Labyrinthe::weaponBonusSound = new Sound("sons/weapon_bonus.wav");
+
 // On utilise ce namespace pour ne pas que ces fonctions qu'on désire n'utiliser que dans ce fichier
 // ne rentrent pas en conflit avec d'autres fonctions locales à un fichier
 // (on pourrait aussi utiliser static il me semble)
@@ -312,6 +314,9 @@ namespace Labyrinthe_private
         case 'X':
         case 'C':
         case 'H':
+        case 'A':
+        case 'D':
+        case 'P':
             return OBJECT;
 
         case '-':
@@ -324,6 +329,15 @@ namespace Labyrinthe_private
             stray(c);
             return OBJECT; // Juste pour le compilateur
         }
+    }
+
+    void placeBox(Labyrinthe* laby, ParserState& state, int tex)
+    {
+        Box* box   = laby->_boxes + state.indexBoxes;
+        box->_x    = state.x;
+        box->_y    = state.y;
+        box->_ntex = tex;
+        ++state.indexBoxes;
     }
 
     void placeObject(Labyrinthe* laby, ParserState& state, char c)
@@ -340,24 +354,24 @@ namespace Labyrinthe_private
             break;
 
         case 'X':
-        {
-            Box* box   = laby->_boxes + state.indexBoxes;
-            box->_x    = state.x;
-            box->_y    = state.y;
-            box->_ntex = laby->boxTex;
-            ++state.indexBoxes;
+            placeBox(laby, state, laby->boxTex);
             break;
-        }
 
         case 'H':
-        {
-            Box* box   = laby->_boxes + state.indexBoxes;
-            box->_x    = state.x;
-            box->_y    = state.y;
-            box->_ntex = laby->healthBoxTex;
-            ++state.indexBoxes;
+            placeBox(laby, state, laby->healthBoxTex);
             break;
-        }
+
+        case 'A':
+            placeBox(laby, state, laby->attackBoxTex);
+            break;
+
+        case 'D':
+            placeBox(laby, state, laby->cooldownBoxTex);
+            break;
+
+        case 'P':
+            placeBox(laby, state, laby->projectilesBoxTex);
+            break;
 
         case 'G':
         {
@@ -702,6 +716,9 @@ void Labyrinthe::parseMaze(std::ifstream& file)
 
             case 'X':
             case 'H':
+            case 'A':
+            case 'D':
+            case 'P':
                 ++_nboxes;
                 break;
 
@@ -871,6 +888,18 @@ void Labyrinthe::fillData()
         if (box->_ntex == healthBoxTex)
         {
             type = HEALTH;
+        } 
+        else if (box->_ntex == attackBoxTex)
+        {
+            type = ATTACK;
+        } 
+        else if (box->_ntex == cooldownBoxTex)
+        {
+            type = COOLDOWN;
+        }
+        else if (box->_ntex == projectilesBoxTex)
+        {
+            type = PROJECTILES;
         }
         m_data[box->_y][box->_x] = type;
     }
@@ -1047,6 +1076,12 @@ Labyrinthe::Labyrinthe(char* filename)
     boxTex = Environnement::wall_texture(tmp);
     sprintf(tmp, "%s/%s", texture_dir, "health-box.jpg");
     healthBoxTex = Environnement::wall_texture(tmp);
+    sprintf(tmp, "%s/%s", texture_dir, "attack-box.jpg");
+    attackBoxTex = Environnement::wall_texture(tmp);
+    sprintf(tmp, "%s/%s", texture_dir, "cooldown-box.jpg");
+    cooldownBoxTex = Environnement::wall_texture(tmp);
+    sprintf(tmp, "%s/%s", texture_dir, "projectiles-box.jpg");
+    projectilesBoxTex = Environnement::wall_texture(tmp);
 
     // Chargement du fichier
     std::ifstream file;
@@ -1185,17 +1220,59 @@ bool Labyrinthe::checkBoxes(int x, int y)
 {
     // Y a-t-il une caisse avec laquelle on peut interagir ? Si non, on quitte
     int data = m_data[y][x];
-    if (data < HEALTH || data > HEALTH)
+    if (data < HEALTH || data > PROJECTILES)
     {
         return false;
     }
 
     // On applique l'interaction
+    Hunter* hunter = getHunter();
+    Weapon& w = hunter->weapon();
     switch (data)
     {
     case HEALTH:
-        getHunter()->hit(nullptr, -20);
+        hunter->hit(nullptr, -20);
         break;
+
+    case ATTACK:
+    {
+        play(weaponBonusSound);
+        w.setDamage(w.getDamage() + 20);
+        message("PV: %d - Your damage output has increased!", hunter->getPV());
+        break;
+    }
+
+    case COOLDOWN:
+    {
+        play(weaponBonusSound);
+        int cooldown = w.getCooldown();
+        if (cooldown < 20)
+        {
+            message("PV: %d - Your cooldown could not be decreased further.", hunter->getPV());
+        }
+        else
+        {
+            message("PV: %d - Your cooldown has decreased!", hunter->getPV());
+            w.setCooldown(cooldown - 20);
+        }
+        break;
+    }
+
+    case PROJECTILES:
+    {
+        play(weaponBonusSound);
+        int nb = w.getNbBalls();
+        if (nb > 9)
+        {
+            message("PV: %d - You cannot fire more than 11 fire balls at once.", hunter->getPV());
+        }
+        else
+        {
+            message("PV: %d - You can now fire 2 extra balls at once!", hunter->getPV());   
+            w.setNbBalls(nb + 2);
+        }
+        break;
+    }
 
     default:
         // Ne devrait jamais arriver

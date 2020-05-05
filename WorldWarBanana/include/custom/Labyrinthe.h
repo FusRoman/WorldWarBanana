@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Environnement.h"
+#include "Sound.h"
 #include "FireBallDX.h"
 #include "Guard.h"
 #include "Hunter.h"
@@ -22,6 +23,9 @@ enum CellType
     WALL,
     TREASURE,
     HEALTH,
+    ATTACK,
+    COOLDOWN,
+    PROJECTILES,
     CMOVER // Toujours en dernière place !
 };
 
@@ -144,6 +148,11 @@ private:
 
 public:
     /**
+     * @brief Le son joué quand on récupère un bonus.
+     */
+    static Sound* weaponBonusSound;
+
+    /**
      * @brief Texture des boîtes
      */
     int boxTex;
@@ -152,6 +161,21 @@ public:
      * @brief Texture des caisses de soin
      */
     int healthBoxTex;
+
+    /**
+     * @brief Texture des caisses qui augmentent l'attaque
+     */
+    int attackBoxTex;
+
+    /**
+     * @brief Texture des caisses qui diminuent le cooldown
+     */
+    int cooldownBoxTex;
+
+    /**
+     * @brief Texture des caisses qui augmentent le nombre de projectiles.
+     */
+    int projectilesBoxTex;
 
     /**
      * @brief Renvoie des coordonnées utilisables par les Mover depuis les coordonnées d'une case.

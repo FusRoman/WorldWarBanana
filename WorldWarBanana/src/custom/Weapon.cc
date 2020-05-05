@@ -51,6 +51,7 @@ Weapon::Weapon(CMover* owner):
     {
         setDamage(10);
         setCooldown(60);
+        setAngle(5);
     }
     else
     {

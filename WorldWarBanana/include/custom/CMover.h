@@ -46,7 +46,6 @@ public:
 
     /**
      * @brief Retourne vrai si l'objet est bloquant, faux sinon.
-     * La valeur retournée par cette fonction ne devrait pas changer au cours de la vie d'un objet.
      */
     virtual bool block() const = 0;
 

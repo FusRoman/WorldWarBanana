@@ -43,9 +43,7 @@ namespace Labyrinthe_private
 
     void error(const std::string& msg)
     {
-        std::cerr << "Error line " << cursor.line + 1 << ", column " << cursor.column + 1 << ": "
-                  << msg << std::endl;
-        exit(1);
+        ERROR("Error line " << cursor.line + 1 << ", column " << cursor.column + 1 << ": " << msg);
     }
 
     void stray(char c)
@@ -313,6 +311,7 @@ namespace Labyrinthe_private
         case 'T':
         case 'X':
         case 'C':
+        case 'H':
             return OBJECT;
 
         case '-':
@@ -346,6 +345,16 @@ namespace Labyrinthe_private
             box->_x    = state.x;
             box->_y    = state.y;
             box->_ntex = laby->boxTex;
+            ++state.indexBoxes;
+            break;
+        }
+
+        case 'H':
+        {
+            Box* box   = laby->_boxes + state.indexBoxes;
+            box->_x    = state.x;
+            box->_y    = state.y;
+            box->_ntex = laby->healthBoxTex;
             ++state.indexBoxes;
             break;
         }
@@ -692,6 +701,7 @@ void Labyrinthe::parseMaze(std::ifstream& file)
                 break;
 
             case 'X':
+            case 'H':
                 ++_nboxes;
                 break;
 
@@ -815,8 +825,7 @@ namespace Labyrinthe_private
     {
         if (x < 0 || x >= laby->width() || y < 0 || y >= laby->height())
         {
-            std::cerr << "The maze is not closed. Check its borders." << std::endl;
-            exit(1);
+            ERROR("The maze is not closed. Check its borders.");
         }
         if (laby->data(x, y) == _EMPTY && laby->distanceFromTreasure(x, y) > d + 1)
         {
@@ -828,18 +837,6 @@ namespace Labyrinthe_private
 // Remplit m_data sans considérer les Mover (pour l'algorithme de flood après)
 void Labyrinthe::fillData()
 {
-    // Allocation de m_data et remplissage avec _EMPTY
-    m_data = new char*[m_height];
-    for (uint y = 0; y < m_height; ++y)
-    {
-        char* row = new char[m_width];
-        for (uint x = 0; x < m_width; ++x)
-        {
-            row[x] = _EMPTY;
-        }
-        m_data[y] = row;
-    }
-
     // Gestion des murs
     // Pas besoin de s'occuper des posters a priori puisqu'il y a toujours un mur derrière
     for (int i = 0; i < _nwall; ++i)
@@ -866,10 +863,16 @@ void Labyrinthe::fillData()
     }
 
     // Gestion des caisses
+    // (ne marche que si chaque type de caisse ne partage qu'une seule texture, mais a priori c'est le cas)
     for (int i = 0; i < _nboxes; ++i)
     {
         Box* box                 = _boxes + i;
-        m_data[box->_y][box->_x] = WALL;
+        int type = WALL;
+        if (box->_ntex == healthBoxTex)
+        {
+            type = HEALTH;
+        }
+        m_data[box->_y][box->_x] = type;
     }
 
     // Trésor
@@ -881,19 +884,6 @@ void Labyrinthe::fillData()
 
 void Labyrinthe::flood()
 {
-    // Allocation de m_distances et remplissage avec le plus grand entier possible
-    uint umax   = std::numeric_limits<uint>::max();
-    m_distances = new uint*[m_height];
-    for (uint y = 0; y < m_height; ++y)
-    {
-        uint* row = new uint[m_width];
-        for (uint x = 0; x < m_width; ++x)
-        {
-            row[x] = umax;
-        }
-        m_distances[y] = row;
-    }
-
     // BFS en partant du trésor
     std::list<BFSData> stack;
     stack.push_back({_treasor._x, _treasor._y, 0});
@@ -918,18 +908,8 @@ void Labyrinthe::flood()
         floodNeighbour(this, data.x + 1, data.y + 1, data.d, stack);
     }
 
-    // Le joueur peut-il accéder au trésor ?
-    Mover* hunter = _guards[0];
-    Vec2i  p      = realToGrid(hunter->_x, hunter->_y);
-    if (m_distances[p.y][p.x] == umax)
-    {
-        std::cerr << "The player has no way to get to the treasure." << std::endl;
-        exit(1);
-    }
-
-    // Mettre la case du trésor à umax ?
-
     // Calcul de la plus grande distance
+    uint umax   = std::numeric_limits<uint>::max();
     m_maxDistance = 0;
     for (uint x = 0; x < m_width; ++x) 
     {
@@ -944,6 +924,24 @@ void Labyrinthe::flood()
     }
 }
 
+void Labyrinthe::firstFlood()
+{
+    // Allocation et initialisation de m_distances
+    uint umax   = std::numeric_limits<uint>::max();
+    m_distances = create2DArray<uint>(m_width, m_height, umax);
+    flood();
+
+    // Le joueur peut-il accéder au trésor ?
+    Mover* hunter = _guards[0];
+    Vec2i  p      = realToGrid(hunter->_x, hunter->_y);
+    if (m_distances[p.y][p.x] == umax)
+    {
+        ERROR("The player has no way to get to the treasure.");
+    }
+
+    // Mettre la case du trésor à umax ?
+}
+
 void Labyrinthe::fillDataMovers()
 {
     for (int i = 0; i < _nguards; ++i)
@@ -955,6 +953,36 @@ void Labyrinthe::fillDataMovers()
             m_data[p.y][p.x] = mover->id() + CMOVER;
         }
     }
+}
+
+void Labyrinthe::reevaluate()
+{
+    // Réévaluation de m_data
+    for (uint y = 0; y < m_height; ++y)
+    {
+        char* row = m_data[y];
+        for (uint x = 0; x < m_width; ++x)
+        {
+            row[x] = _EMPTY;
+        }
+    }
+    fillData();
+
+    // Réévaluation de m_distances
+    uint umax   = std::numeric_limits<uint>::max();
+    for (uint y = 0; y < m_height; ++y)
+    {
+        uint* row = m_distances[y];
+        for (uint x = 0; x < m_width; ++x)
+        {
+            row[x] = umax;
+        }
+    }
+    flood();
+
+    // Enfin on rajoute les movers et on rafraîchit l'affichage
+    fillDataMovers();
+    reconfigure();
 }
 
 /**************************************************************************************************
@@ -971,6 +999,11 @@ bool Labyrinthe::canGoTo(CMover* mover, int x, int y)
 bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
 {
     Vec2i p = realToGrid(mover->_x + dx, mover->_y + dy);
+    if (mover->id() == 0)
+    {
+        checkBoxes(p.x, p.y);
+    }
+
     if (canGoTo(mover, p.x, p.y))
     {
         // On libère l'ancienne case
@@ -1012,6 +1045,8 @@ Labyrinthe::Labyrinthe(char* filename)
     char tmp[128];
     sprintf(tmp, "%s/%s", texture_dir, "boite.jpg");
     boxTex = Environnement::wall_texture(tmp);
+    sprintf(tmp, "%s/%s", texture_dir, "health-box.jpg");
+    healthBoxTex = Environnement::wall_texture(tmp);
 
     // Chargement du fichier
     std::ifstream file;
@@ -1021,8 +1056,7 @@ Labyrinthe::Labyrinthe(char* filename)
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Could not open file " << filename << ". Message: " << e.what() << '\n';
-        exit(1);
+        ERROR("Could not open file " << filename << ". Message: " << e.what());
     }
     reset();
 
@@ -1032,21 +1066,17 @@ Labyrinthe::Labyrinthe(char* filename)
     file.close();
 
     // Initialisation des données
+    m_data = create2DArray<char>(m_width, m_height, _EMPTY);
     fillData();
-    flood();
+    firstFlood();
     fillDataMovers();
 }
 
 Labyrinthe::~Labyrinthe()
 {
     // Jamais appelé visiblement donc on ne saura jamais si ce code est correct :(
-    for (uint y = 0; y < m_height; ++y)
-    {
-        delete[] m_data[y];
-        delete[] m_distances[y];
-    }
-    delete[] m_data;
-    delete[] m_distances;
+    free2DArray(m_data, m_height);
+    free2DArray(m_distances, m_height);
 
     for (int i = 0; i < NB_POSTERS; ++i)
     {
@@ -1060,8 +1090,7 @@ int Labyrinthe::wall_texture(uint index)
     {
         return Environnement::wall_texture(m_posters[index]);
     }
-    std::cerr << "Labyrinthe::wall_texture(uint): invalid index " << index << "." << std::endl;
-    exit(1);
+    ERROR("Labyrinthe::wall_texture(uint): invalid index " << index << ".");
 }
 
 char Labyrinthe::data(int x, int y)
@@ -1088,6 +1117,9 @@ CellType Labyrinthe::getCellType(int x, int y)
 
     case TREASURE:
         return TREASURE;
+
+    case HEALTH:
+        return HEALTH;
 
     default:
         return CMOVER;
@@ -1144,8 +1176,48 @@ FireBallDX* Labyrinthe::getFireBall(uint index) const
 {
     if (index >= Weapon::maxNbBalls)
     {
-        std::cerr << "Labyrinthe::getFireBall: invalid index " << index << std::endl;
-        exit(1);
+        ERROR("Labyrinthe::getFireBall: invalid index " << index);
     }
     return static_cast<FireBallDX*>(_guards[index + 1]);
+}
+
+bool Labyrinthe::checkBoxes(int x, int y)
+{
+    // Y a-t-il une caisse avec laquelle on peut interagir ? Si non, on quitte
+    int data = m_data[y][x];
+    if (data < HEALTH || data > HEALTH)
+    {
+        return false;
+    }
+
+    // On applique l'interaction
+    switch (data)
+    {
+    case HEALTH:
+        getHunter()->hit(nullptr, -20);
+        break;
+
+    default:
+        // Ne devrait jamais arriver
+        break;
+    }
+
+    // On cherche la boîte dont il est question
+    for (int i = 0; i < _nboxes; ++i)
+    {
+        Box* box = _boxes + i;
+        if (box->_x == x && box->_y == y)
+        {
+            // Trouvé !
+            Box* newBoxes = removeFromArray<Box>(_boxes, _nboxes, i);
+            delete[] _boxes;
+            _boxes = newBoxes;
+            _nboxes--;
+            reevaluate();
+            return true;
+        }
+    }
+
+    ERROR("Labyrinthe::checkBoxes: corrupted data");
+    return false;
 }

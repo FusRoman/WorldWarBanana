@@ -52,7 +52,7 @@ public:
     virtual bool process_fireball(float dx, float dy) override;
     virtual void fire(int angle_vertical) override;
 
-    virtual bool block() const override { return true; }
+    virtual bool block() const override;
 
     /**
      * @brief Renvoie l'arme actuelle.

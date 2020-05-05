@@ -9,7 +9,7 @@
 
 Sound* Weapon::onFire    = new Sound("sons/hunter_fire.wav");
 Sound* Weapon::onHit     = new Sound("sons/hit_wall.wav");
-Sound* Weapon::onTrigger = new Sound("sons/hunter_hit.wav");
+Sound* Weapon::onTrigger = new Sound("sons/gun_cocking.wav");
 
 const uint Weapon::maxNbBalls = 10;
 
@@ -55,6 +55,7 @@ Weapon::Weapon(CMover* owner):
     else
     {
         setDamage(10);
+        setOnTrigger(nullptr);
     }
 }
 
@@ -212,9 +213,15 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
     Vec2i       p     = laby->realToGrid(m_owner->_x - fb->get_x(), m_owner->_y - fb->get_y());
     float       dist2 = p.x * p.x + p.y * p.y;
 
-    // On a les mêmes permissions de déplacement que m_owner
+    // Tests de collision avec d'abord les bonus, puis d'autres objets éventuels
+    bool bonus = false;
     Vec2i fbp = laby->realToGrid(fb->get_x() + dx, fb->get_y() + dy);
-    if (laby->canGoTo(m_owner, fbp.x, fbp.y))
+    if (m_owner->id() == 0)
+    {
+        bonus = laby->checkBoxes(fbp.x, fbp.y);
+    }
+    
+    if (!bonus && laby->canGoTo(m_owner, fbp.x, fbp.y))
     {
         return true;
     }

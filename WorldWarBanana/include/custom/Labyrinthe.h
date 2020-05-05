@@ -21,6 +21,7 @@ enum CellType
     _EMPTY = EMPTY,
     WALL,
     TREASURE,
+    HEALTH,
     CMOVER // Toujours en dernière place !
 };
 
@@ -97,7 +98,7 @@ private:
     void parseMaze(std::ifstream& file);
 
     /**
-     * @brief Remplis m_data pour les objets statiques (murs, caisses et trésor)
+     * @brief Remplit m_data pour les objets statiques (murs, caisses et trésor)
      * Le but de cette fonction est de préparer le terrain pour flood.
      */
     void fillData();
@@ -107,7 +108,12 @@ private:
      * Concrètement, chaque case praticable sera associée à sa distance au trésor
      * en nombre minimal de déplacements case par case, via un algorithme de flooding
      * (d'où le nom, fort astucieux si vous me demandez mon avis).
-     * Additionnellement, l'algorithme vérifie deux critères de validité pour le labyrinthe :
+     */
+    void flood();
+
+    /**
+     * @brief Alloue m_distances et appelle flood.
+     * Additionnellement, vérifie deux critères de validité pour le labyrinthe :
      * - il est bien fermé
      *      Si on sort des dimensions du labyrinthe au cours d'exécution,
      *      alors il n'est pas fermé et on doit lancer une erreur appropriée.
@@ -117,12 +123,19 @@ private:
      * valide. Peu importe si d'autres objets sont hors de portée du joueur, puisqu'ils ne sont pas
      * essentiels pour gagner.
      */
-    void flood();
+    void firstFlood();
 
     /**
      * @brief Modifie m_data de façon à rendre les gardiens bloquants.
      */
     void fillDataMovers();
+
+    /**
+     * @brief Réévalue le labyrinthe.
+     * Les distances au trésor et les passabilités sont recalculées,
+     * l'affichage des objets statiques est rafraîchi.
+     */
+    void reevaluate();
 
     /**
      * @brief Fonction auxiliaire de move.
@@ -134,6 +147,11 @@ public:
      * @brief Texture des boîtes
      */
     int boxTex;
+
+    /**
+     * @brief Texture des caisses de soin
+     */
+    int healthBoxTex;
 
     /**
      * @brief Renvoie des coordonnées utilisables par les Mover depuis les coordonnées d'une case.
@@ -221,9 +239,7 @@ public:
     /**
      * @brief Retourne la distance au trésor de la case atteignable la plus éloignée de celui-ci.
      */
-    inline uint getMaxDistance() const {
-        return m_maxDistance;
-    }
+    inline uint getMaxDistance() const { return m_maxDistance; }
 
     /**
      * @brief Libère la case sur laquelle se trouve le mover actuel.
@@ -245,4 +261,12 @@ public:
      * L'index donné doit être inférieur à Weapon::maxNbBalls.
      */
     FireBallDX* getFireBall(uint i) const;
+
+    /**
+     * @brief Vérifie si une caisse se trouve sur x, y et interagit avec comme il se doit.
+     * Seul le joueur devrait avoir le droit d'interagir avec les caisses spéciales,
+     * donc si interaction il y a, elle affectera le joueur.
+     * Renvoie true s'il y a interaction et false sinon.
+     */
+    bool checkBoxes(int x, int y);
 };

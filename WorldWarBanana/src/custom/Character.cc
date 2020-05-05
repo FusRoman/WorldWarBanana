@@ -27,10 +27,7 @@ void Character::hit(CMover* m, int damage)
     }
     else
     {
-        if (m_pv < m_maxpvs)
-        {
-            play(m_heal_sound);
-        }
+        play(m_heal_sound);
         if (m_pv - damage >= m_maxpvs)
         {
             m_pv = m_maxpvs;
@@ -48,3 +45,5 @@ bool Character::process_fireball(float dx, float dy)
 }
 
 void Character::fire(int angle_vertical) { m_weapon.fire(angle_vertical); }
+
+bool Character::block() const { return !isDead(); }

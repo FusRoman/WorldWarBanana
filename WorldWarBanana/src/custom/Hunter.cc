@@ -26,5 +26,13 @@ void Hunter::die(CMover* m) { partie_terminee(false); }
 void Hunter::hit(CMover* m, int damage)
 {
     Character::hit(m, damage);
-    message("PV: %d (last shot by guard %d)", m_pv, m->id());
+    if (m)
+    {
+        message("PV: %d (last shot by guard %d)", m_pv, m->id());
+    }
+    else
+    {
+        message("PV: %d", m_pv);
+    }
+    
 }

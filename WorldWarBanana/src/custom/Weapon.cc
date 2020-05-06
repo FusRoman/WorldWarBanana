@@ -236,7 +236,7 @@ bool Weapon::process_fireball(FireBall* fb, double dx, double dy)
     {
         if (m_owner->id() == 0)
         {
-            partie_terminee(true);
+            laby->partie_terminee(true);
         }
         break;
     }

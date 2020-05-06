@@ -21,7 +21,7 @@ Hunter::Hunter(Labyrinthe* l, uint id): Character(l, 0, id, 100)
 
 void Hunter::update() {}
 
-void Hunter::die(CMover* m) { partie_terminee(false); }
+void Hunter::die(CMover* m) { m_laby->partie_terminee(false); }
 
 void Hunter::hit(CMover* m, int damage)
 {

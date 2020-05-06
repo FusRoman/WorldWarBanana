@@ -16,6 +16,8 @@ Vec2f Labyrinthe::gridToReal(int x, int y) { return Vec2f(x * scale, y * scale);
 Vec2i Labyrinthe::realToGrid(float x, float y) { return Vec2i(x / scale, y / scale); }
 
 Sound* Labyrinthe::weaponBonusSound = new Sound("sons/weapon_bonus.wav");
+Music* Labyrinthe::mainMusic = new Music("sons/funny.wav");
+Music* Labyrinthe::victoryMusic = new Music("sons/happy.wav");
 
 // On utilise ce namespace pour ne pas que ces fonctions qu'on désire n'utiliser que dans ce fichier
 // ne rentrent pas en conflit avec d'autres fonctions locales à un fichier
@@ -1105,6 +1107,11 @@ Labyrinthe::Labyrinthe(char* filename)
     fillData();
     firstFlood();
     fillDataMovers();
+
+    if (mainMusic)
+    {
+        mainMusic->play();
+    }
 }
 
 Labyrinthe::~Labyrinthe()
@@ -1297,4 +1304,17 @@ bool Labyrinthe::checkBoxes(int x, int y)
 
     ERROR("Labyrinthe::checkBoxes: corrupted data");
     return false;
+}
+
+void Labyrinthe::partie_terminee(bool victory)
+{
+    if (mainMusic)
+    {
+        mainMusic->stop();
+    }
+    ::partie_terminee(victory);
+    if (victory && victoryMusic)
+    {
+        victoryMusic->play();
+    }
 }

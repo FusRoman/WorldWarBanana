@@ -5,6 +5,7 @@
 
 #include "Environnement.h"
 #include "Sound.h"
+#include "Music.h"
 #include "FireBallDX.h"
 #include "Guard.h"
 #include "Hunter.h"
@@ -153,6 +154,16 @@ public:
     static Sound* weaponBonusSound;
 
     /**
+     * @brief La musique jouée tant que la partie n'est pas terminée.
+     */
+    static Music* mainMusic;
+
+    /**
+     * @brief La musique jouée quand le joueur a gagné.
+     */
+    static Music* victoryMusic;
+
+    /**
      * @brief Texture des boîtes
      */
     int boxTex;
@@ -293,4 +304,9 @@ public:
      * Renvoie true s'il y a interaction et false sinon.
      */
     bool checkBoxes(int x, int y);
+
+    /**
+     * @brief Complète la fonction globale partie_terminee.
+     */
+    void partie_terminee(bool victory);
 };

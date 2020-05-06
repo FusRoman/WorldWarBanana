@@ -327,7 +327,7 @@ Defense::Defense(Guard* g): Walking(g, true) {}
 
 std::pair<Vec2f, float> Defense::newDirection()
 {
-    if (randomFloat(0., 1.) < 0.5)
+    if (randomFloat(0., 1.) < 0.25)
     {
         Labyrinthe* maze      = m_guard->getMaze();
         Vec2i       p         = maze->realToGrid(m_guard->_x, m_guard->_y);

@@ -614,7 +614,7 @@ uint Labyrinthe::allocate()
     for (uint g = i; g < nbguards; ++g)
     {
         int rd     = randomInt(0, Guard::modeles.size() - 1);
-        _guards[g] = new Guard(this, rd, g, 50);
+        _guards[g] = new Guard(this, rd, g, 100);
     }
 
     _nguards = nbguards;
@@ -1244,7 +1244,7 @@ bool Labyrinthe::checkBoxes(int x, int y)
     case ATTACK:
     {
         play(weaponBonusSound);
-        w.setDamage(w.getDamage() + 20);
+        w.setDamage(w.getDamage() + 10);
         message("PV: %d - Your damage output has increased!", hunter->getPV());
         break;
     }

@@ -38,6 +38,7 @@ private:
     static Sound* heal_sound;
     static Sound* fire_sound;
     static Sound* death_sound;
+    static const float offset;
 
     float  m_speedX; // déplacement dx et dy du gardiens, utilisé en argument de move(dx, dy)
     float  m_speedY;
@@ -70,4 +71,7 @@ public:
     virtual void hit(CMover* m, int damage);
     virtual void die(CMover* m) override;
     virtual void update() override;
+
+    virtual Vec2f getRealPosition() const override;
+    virtual Vec2i getGridPosition(float dx = 0., float dy = 0.) const override;
 };

@@ -9,7 +9,7 @@ class Labyrinthe;
 class Hunter: public Character
 {
 private:
-    static Sound* _hunter_hit; // cri du chasseur touch�.
+    static Sound* _hunter_hit;
     static Sound* heal_sound;
 
 public:

@@ -73,7 +73,7 @@ endif
 endif
 
 CXX         = g++
-CXXFLAGS	= $(INCLUDEPATH) -O3 -Wall -Werror $(EXTRA_FLAGS)
+CXXFLAGS	= -O3 $(INCLUDEPATH) -Wall -Werror $(EXTRA_FLAGS) 
 DEPFLAGS 	= -MT $@ -MMD -MP -MF $(DEPENDSDIR)$*.d
 
 .PHONY: list format clean

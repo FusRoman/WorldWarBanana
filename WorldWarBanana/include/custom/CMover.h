@@ -33,13 +33,22 @@ public:
     inline Labyrinthe* getMaze() const { return m_laby; }
 
     /**
+     * @brief Retourne la position du centre de l'objet.
+     */
+    virtual Vec2f getRealPosition() const;
+
+    /**
+     * @brief Retourne la case où se trouverait l'objet s'il se déplaçait de (dx, dy).
+     */
+    virtual Vec2i getGridPosition(float dx = 0., float dy = 0.) const;
+
+    /**
      * @brief Renvoie l'ID de l'objet (par rapport à son labyrinthe).
      */
     inline uint id() const { return m_id; }
 
     /**
      * @brief Déplace l'objet du mieux possible.
-     * L'objet est considéré comme solide, i.e. les autrs ne pourront pas passer dessus.
      * "Glisse" sur les obstacles si l'angle le permet.
      */
     virtual bool move(double dx, double dy) override;

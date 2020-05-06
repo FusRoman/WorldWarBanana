@@ -83,19 +83,17 @@ using namespace Labyrinthe_private;
  *
  *************************************************************************************************/
 
+#define MAX_SIZE_POSTER_PATH 256
+
 void Labyrinthe::storePoster(int index, const char* path)
 {
-    if (m_posters[index])
+    size_t dirlen = strlen(texture_dir);
+    size_t pathlen = strlen(path);
+    if (dirlen + pathlen + 10 > MAX_SIZE_POSTER_PATH)
     {
-        delete[] m_posters[index];
+        ERROR("file name '" << path << "' is too long, make it shorter.");
     }
-
-    size_t dirlen    = strlen(texture_dir);
-    size_t pathlen   = strlen(path);
-    m_posters[index] = new char[dirlen + pathlen + 1];
-    strcpy(m_posters[index], texture_dir);
-    m_posters[index][dirlen] = '/';
-    strcpy(m_posters[index] + dirlen + 1, path);
+    sprintf(m_posters[index], "%s/%s", texture_dir, path);
 }
 
 void Labyrinthe::parsePosters(std::ifstream& file)
@@ -103,7 +101,7 @@ void Labyrinthe::parsePosters(std::ifstream& file)
     // On initialise tous les posters avec une image par défaut
     for (int i = 0; i < NB_POSTERS; ++i)
     {
-        m_posters[i] = nullptr;
+        m_posters[i] = new char[MAX_SIZE_POSTER_PATH];
         storePoster(i, "default_poster.jpg");
     }
 
@@ -963,8 +961,9 @@ void Labyrinthe::firstFlood()
     flood();
 
     // Le joueur peut-il accéder au trésor ?
-    Mover* hunter = _guards[0];
-    Vec2i  p      = realToGrid(hunter->_x, hunter->_y);
+    CMover* hunter = static_cast<CMover*>(_guards[0]);
+    //Vec2i  p      = realToGrid(hunter->_x, hunter->_y);
+    Vec2i p = hunter->getGridPosition();
     if (m_distances[p.y][p.x] == umax)
     {
         ERROR("The player has no way to get to the treasure.");
@@ -980,7 +979,8 @@ void Labyrinthe::fillDataMovers()
         CMover* mover = (CMover*) _guards[i];
         if (mover->block())
         {
-            Vec2i p          = realToGrid(mover->_x, mover->_y);
+            //Vec2i p          = realToGrid(mover->_x, mover->_y);
+            Vec2i p = mover->getGridPosition();
             m_data[p.y][p.x] = mover->id() + CMOVER;
         }
     }
@@ -1029,7 +1029,8 @@ bool Labyrinthe::canGoTo(CMover* mover, int x, int y)
 
 bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
 {
-    Vec2i p = realToGrid(mover->_x + dx, mover->_y + dy);
+    //Vec2i p = realToGrid(mover->_x + dx, mover->_y + dy);
+    Vec2i p = mover->getGridPosition(dx, dy);
     if (mover->id() == 0)
     {
         checkBoxes(p.x, p.y);
@@ -1038,7 +1039,8 @@ bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
     if (canGoTo(mover, p.x, p.y))
     {
         // On libère l'ancienne case
-        Vec2i op = realToGrid(mover->_x, mover->_y);
+        //Vec2i op = realToGrid(mover->_x, mover->_y);
+        Vec2i op = mover->getGridPosition();
         mover->_x += dx;
         mover->_y += dy;
 
@@ -1055,7 +1057,8 @@ bool Labyrinthe::moveAux(CMover* mover, double dx, double dy)
 
 void Labyrinthe::free(CMover* mover)
 {
-    Vec2i p          = realToGrid(mover->_x, mover->_y);
+    //Vec2i p          = realToGrid(mover->_x, mover->_y);
+    Vec2i p = mover->getGridPosition();
     m_data[p.y][p.x] = _EMPTY;
 }
 

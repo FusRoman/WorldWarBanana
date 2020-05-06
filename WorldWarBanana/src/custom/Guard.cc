@@ -140,7 +140,8 @@ namespace _Guard_private_
         std::vector<Node> parent;
         std::set<Node>    closedList;
         Heap<Node>        openList;
-        Vec2i             posGuard(Labyrinthe::realToGrid(m._x, m._y));
+        //Vec2i             posGuard(Labyrinthe::realToGrid(m._x, m._y));
+        Vec2i             posGuard(m.getGridPosition());
         Node              start(posGuard.x, posGuard.y, 0, 0, 0, 0, 0, 0, -1);
         openList.push(start);
         parent.push_back(start);
@@ -301,8 +302,9 @@ void Walking::update()
     }
 
     Labyrinthe* laby = m_guard->getMaze();
-    Vec2f       nextPosition(m_guard->_x + m_guard->m_speedX, m_guard->_y + m_guard->m_speedY);
-    Vec2i       gridPosition = laby->realToGrid(nextPosition.x, nextPosition.y);
+    /*Vec2f       nextPosition(m_guard->_x + m_guard->m_speedX, m_guard->_y + m_guard->m_speedY);
+    Vec2i       gridPosition = laby->realToGrid(nextPosition.x, nextPosition.y);*/
+    Vec2i       gridPosition = m_guard->getGridPosition(m_guard->m_speedX, m_guard->m_speedY);
     switch (laby->getCellType(m_guard, gridPosition.x, gridPosition.y))
     {
     case WALL:
@@ -330,7 +332,8 @@ std::pair<Vec2f, float> Defense::newDirection()
     if (randomFloat(0., 1.) < 0.25)
     {
         Labyrinthe* maze      = m_guard->getMaze();
-        Vec2i       p         = maze->realToGrid(m_guard->_x, m_guard->_y);
+        //Vec2i       p         = maze->realToGrid(m_guard->_x, m_guard->_y);
+        Vec2i       p         = m_guard->getGridPosition();
         int         bestX     = 0;
         int         bestY     = 0;
         uint        bestValue = maze->distanceFromTreasure(p.x, p.y);
@@ -370,8 +373,9 @@ void Attack::update()
 {
     if (!m_guard->canSeeHunter(true))
     {
-        Vec2i coordGrid = Labyrinthe::realToGrid(m_guard->getMaze()->getHunter()->_x,
-                                                 m_guard->getMaze()->getHunter()->_y);
+        /*Vec2i coordGrid = Labyrinthe::realToGrid(m_guard->getMaze()->getHunter()->_x,
+                                                 m_guard->getMaze()->getHunter()->_y);*/
+        Vec2i coordGrid = m_guard->getMaze()->getHunter()->getGridPosition();
         m_guard->setState(new Pursuit(m_guard, coordGrid.x, coordGrid.y));
     }
     else
@@ -416,7 +420,8 @@ void Pursuit::update()
     else
     {
 
-        Vec2i coordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+        //Vec2i coordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+        Vec2i coordGuard = m_guard->getGridPosition();
         Vec2i nextCase(coordGuard.x + m_nextPosition->dx, coordGuard.y + m_nextPosition->dy);
         if (!m_guard->getMaze()->canGoTo(m_guard, nextCase.x, nextCase.y))
         {
@@ -437,7 +442,8 @@ void Pursuit::update()
         }
         Vec2f unit(Vec2f(m_nextPosition->dx, m_nextPosition->dy).normalize());
         m_guard->walk(unit, unit.angle());
-        Vec2i newCoordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+        //Vec2i newCoordGuard = Labyrinthe::realToGrid(m_guard->_x, m_guard->_y);
+        Vec2i newCoordGuard = m_guard->getGridPosition();
         // On passe au prochain du noeud du chemin si le gardien a changé de case dans le
         // labyrinthe.
         if (newCoordGuard.x == m_nextPosition->positionX &&
@@ -581,6 +587,7 @@ Sound* Guard::damage_hit = new Sound("sons/roblox_hit.wav");
 Sound* Guard::heal_sound = new Sound("sons/heal_sound.wav");
 Sound* Guard::fire_sound = new Sound("sons/pk_fire.wav");
 Sound* Guard::death_sound = new Sound("sons/guard_die.wav");
+const float Guard::offset = (float) Environnement::scale / 2.;
 
 const std::vector<const char*> Guard::modeles({"drfreak", "Marvin", "Potator", "garde", "Droid",
                                                "Lezard", "Samourai", "Serpent", "Squelette",
@@ -658,8 +665,10 @@ void Guard::enterDefaultState()
 bool Guard::canSeeHunter(bool _walk)
 {
     Hunter* hunter = getMaze()->getHunter();
-    Vec2f   h(hunter->_x, hunter->_y);
-    Vec2f   g(_x, _y);
+    /*Vec2f   h(hunter->_x, hunter->_y);
+    Vec2f   g(_x, _y);*/
+    Vec2f   h = hunter->getRealPosition();
+    Vec2f   g = getRealPosition();
     Vec2f   gh(h - g);
     float   norm = gh.norm();
 
@@ -710,4 +719,14 @@ void Guard::update()
         m_toBeDeleted = nullptr;
     }
     m_state->update();
+}
+
+Vec2f Guard::getRealPosition() const
+{
+    return Vec2f(_x + offset, _y + offset);
+}
+
+Vec2i Guard::getGridPosition(float dx, float dy) const
+{
+    return Labyrinthe::realToGrid(_x + dx + offset, _y + dy + offset);
 }

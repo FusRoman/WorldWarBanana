@@ -21,7 +21,7 @@
 #include "fmod.hpp"
 #include "fmod_errors.h"
 
-class Music 
+class Music
 {
 private:
 	static FMOD::System*	_system;

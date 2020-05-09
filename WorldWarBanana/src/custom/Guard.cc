@@ -604,9 +604,6 @@ Guard::Guard(Labyrinthe* l, const char* modele, uint id, int maxpvs):
 {
     m_damage_hit = damage_hit;
     m_heal_sound = heal_sound;
-    m_weapon.setNbBalls(1);
-    m_weapon.setCooldown(30);
-    m_weapon.setOnFire(fire_sound);
 }
 
 Guard::Guard(Labyrinthe* l, int modele, uint id, int maxpvs):

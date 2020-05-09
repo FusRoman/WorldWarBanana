@@ -43,10 +43,6 @@ void Weapon::assertNeverFired(const std::string& msg)
 Weapon::Weapon(CMover* owner):
     Weapon(owner, "Banana Blaster", 10, 0, infiniteReach, onFire, onHit, onTrigger)
 {
-    /*setNbBalls(11);
-    setAngle(5);*/
-    /*setNbBalls(3);
-    setAngle(15);*/
     if (owner->id() == 0)
     {
         setDamage(10);
@@ -56,6 +52,7 @@ Weapon::Weapon(CMover* owner):
     else
     {
         setDamage(10);
+        setCooldown(60);
         setOnTrigger(nullptr);
     }
 }
@@ -165,11 +162,9 @@ void Weapon::setAngle(int angle)
 void Weapon::fire(int angle)
 {
     m_firedOnce   = true;
-    uint now      = FireBallDX::tick();
-    int  ellapsed = now - m_lastFired;
-    if (ellapsed >= m_cooldown)
+    if (canFire())
     {
-        m_lastFired = now;
+        m_lastFired = FireBallDX::tick();
         play(m_fire);
         if (m_owner->id() == 0)
         {

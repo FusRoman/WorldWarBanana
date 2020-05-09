@@ -24,7 +24,6 @@ Music* Labyrinthe::victoryMusic = new Music("sons/happy.wav");
 // (on pourrait aussi utiliser static il me semble)
 namespace Labyrinthe_private
 {
-
     typedef struct
     {
         int line;
@@ -1087,6 +1086,9 @@ Labyrinthe::Labyrinthe(char* filename)
     cooldownBoxTex = Environnement::wall_texture(tmp);
     sprintf(tmp, "%s/%s", texture_dir, "projectiles-box.jpg");
     projectilesBoxTex = Environnement::wall_texture(tmp);
+
+    _nmarks = 0;
+    _marks = 0;
 
     // Chargement du fichier
     std::ifstream file;
